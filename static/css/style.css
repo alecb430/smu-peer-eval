@@ -1,0 +1,519 @@
+/* Clean CSS for Singapore Management University Website */
+
+/* Font loading animation */
+@keyframes fonts-loading { 
+  0%, 99% { 
+    color: transparent; 
+  } 
+} 
+
+html.wf-loading * { 
+  animation: fonts-loading 3s; 
+}
+
+/* Base styles */
+body {
+  font-family: 'Pontano Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Header styles */
+.header {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  padding: 1rem 0;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.header-title img {
+  height: 60px;
+  width: auto;
+}
+
+.header-nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2rem;
+}
+
+.header-nav-item-content {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.header-nav-item-content:hover {
+  color: #007bff;
+}
+
+.header-actions-action .sqs-button-element--primary {
+  background: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.header-actions-action .sqs-button-element--primary:hover {
+  background: #0056b3;
+}
+
+/* SVG icons */
+.svg-icons {
+  display: none;
+}
+
+/* Main content */
+.main-content {
+  min-height: calc(100vh - 200px);
+}
+
+/* Hero section */
+.hero-section {
+  position: relative;
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  overflow: hidden;
+}
+
+.section-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.section-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.section-background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+.hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.hero-content p {
+  font-size: 1.25rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Section styles */
+.goal-section,
+.learning-outcomes-section,
+.team-section {
+  padding: 4rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-content {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-content h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.section-content p {
+  font-size: 1.125rem;
+  color: #666;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Learning outcomes grid */
+.user-items-list-simple {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.list-item {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.list-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.list-item-content h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.list-item-content__description {
+  margin-top: 1rem;
+}
+
+.list-item-content__description p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Team carousel */
+.user-items-list-carousel {
+  margin-top: 2rem;
+}
+
+.user-items-list-carousel__slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.user-items-list-carousel__slide {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-items-list-carousel__slide:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.user-items-list-carousel__media {
+  margin-bottom: 1rem;
+}
+
+.user-items-list-carousel__media img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+.user-items-list-carousel__slide h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.user-items-list-carousel__slide p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.list-item-content__actions .sqs-button-element--primary {
+  background: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+
+.list-item-content__actions .sqs-button-element--primary:hover {
+  background: #0056b3;
+}
+
+/* Footer */
+.footer {
+  background: #333;
+  color: white;
+  text-align: center;
+  padding: 2rem;
+  margin-top: 4rem;
+}
+
+.footer-content p {
+  margin: 0;
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.white-space-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.image-responsive {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.logo {
+  display: block;
+}
+
+.button-max-width {
+  max-width: 75%;
+}
+
+.button-max-width--full {
+  max-width: 100%;
+}
+
+.list-item-content__description--full-width {
+  max-width: 100%;
+}
+
+.list-item-content__description--margin-top {
+  margin-top: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header-inner {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .header-nav-list {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-content p {
+    font-size: 1rem;
+  }
+  
+  .section-content h2 {
+    font-size: 2rem;
+  }
+  
+  .user-items-list-simple {
+    grid-template-columns: 1fr;
+  }
+  
+  .user-items-list-carousel__slides {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Floating cart */
+.floating-cart {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.floating-cart.hidden {
+  display: none;
+}
+
+.floating-cart a {
+  background: #007bff;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 50%;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  transition: background 0.3s ease;
+}
+
+.floating-cart a:hover {
+  background: #0056b3;
+}
+
+.floating-cart svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Appointment Form Styles */
+.appointment-section {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.appointment-form-container {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+}
+
+.appointment-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.form-actions button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.sqs-button-element--primary {
+  background: #007bff;
+  color: white;
+}
+
+.sqs-button-element--primary:hover {
+  background: #0056b3;
+}
+
+.sqs-button-element--secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.sqs-button-element--secondary:hover {
+  background: #545b62;
+}
+
+/* Contact Information Section */
+.contact-info-section {
+  padding: 4rem 2rem;
+  background: #f8f9fa;
+  margin-top: 2rem;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.contact-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.contact-item h3 {
+  color: #007bff;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+}
+
+.contact-item p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments for forms */
+@media (max-width: 768px) {
+  .appointment-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+  
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,204 @@
+/* Core styles combining essential elements from all previous CSS files */
+:root {
+    --primary-color: #003d7c;
+    --secondary-color: #666;
+    --background-light: #f5f5f5;
+    --text-dark: #333;
+}
+
+/* Typography */
+@import url('https://fonts.googleapis.com/css2?family=Pontano+Sans:wght@400;700&display=swap');
+
+body {
+    font-family: 'Pontano Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: var(--text-dark);
+}
+
+/* Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+}
+
+.nav-logo img {
+    height: 60px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+.btn-logout {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+    background: #002d5c;
+}
+
+/* Hero Section */
+.hero {
+    padding: 120px 0 60px;
+    background: var(--background-light);
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Goals Section */
+.goals {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.goals h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.goals p {
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--secondary-color);
+}
+
+/* Team Section */
+.team {
+    background: var(--background-light);
+    padding: 60px 0;
+}
+
+.team h2 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.team-member {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.team-member:hover {
+    transform: translateY(-5px);
+}
+
+.team-member img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+}
+
+.team-member-info {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.team-member-info h3 {
+    margin: 0 0 0.5rem;
+    color: var(--primary-color);
+}
+
+.team-member-info p {
+    margin: 0;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* Footer */
+footer {
+    background: var(--primary-color);
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+footer p {
+    margin: 0.5rem 0 0;
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero {
+        padding: 100px 0 40px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .team-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}

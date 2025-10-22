@@ -1,0 +1,254 @@
+<!doctype html>
+<html xmlns:og="http://opengraphprotocol.org/schema/" xmlns:fb="http://www.facebook.com/2008/fbml" lang="en-US"  >
+  <head>
+	<base href="">
+	<script src="{{ url_for('static', filename='js/rerouter.js') }}"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+
+    <title>{% block title %}Singapore Management University{% endblock %}</title>
+
+    <meta http-equiv="Accept-CH" content="Sec-CH-UA-Platform-Version, Sec-CH-UA-Model" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/default-favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/squid-lime-xaty.squarespace.com') }}">
+
+    <meta property="og:site_name" content="Singapore Management University"/>
+    <meta property="og:title" content="Singapore Management University"/>
+    <meta property="og:url" content="https://squid-lime-xaty.squarespace.com"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content="images/smu-logo-1.png"/>
+    <meta property="og:image:width" content="987"/>
+    <meta property="og:image:height" content="390"/>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user-account-core-fe5c190ea7c4282d-min.en-us.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/static.css') }}">
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/legacy.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modern.js') }}"></script>
+
+    {% block extra_head %}{% endblock %}
+  </head>
+
+  <body class="{% block body_class %}{% endblock %}">
+    <div id="siteWrapper" class="clearfix site-wrapper">
+
+      <!-- Header -->
+      <header
+        data-test="header"
+        id="header"
+        class="header theme-col--primary"
+        data-section-theme=""
+        data-controller="Header"
+        data-section-id="header"
+        data-header-style="gradient"
+        data-first-focusable-element
+        tabindex="-1"
+      >
+        <svg style="display:none" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+          <symbol id="circle">
+            <path d="M11.5 17C14.5376 17 17 14.5376 17 11.5C17 8.46243 14.5376 6 11.5 6C8.46243 6 6 8.46243 6 11.5C6 14.5376 8.46243 17 11.5 17Z" fill="none" />
+          </symbol>
+        </svg>
+
+        <div class="sqs-announcement-bar-dropzone"></div>
+
+        <div class="header-announcement-bar-wrapper">
+          <a href="#page" class="header-skip-link sqs-button-element--primary">
+            Skip to Content
+          </a>
+
+          <style>
+            @supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
+              .header-blur-background {
+                -webkit-backdrop-filter: blur(2px);
+                backdrop-filter: blur(2px);
+              }
+            }
+          </style>
+
+          <div class="header-border" data-header-style="gradient" data-header-border="false" data-test="header-border"></div>
+          <div class="header-dropshadow" data-header-style="gradient" data-header-dropshadow="false" data-test="header-dropshadow"></div>
+
+          <div>
+            <div class="header-background-gradient" data-header-style="gradient" data-gradient-type="faded" data-test="header-background-gradient" style="opacity: calc(100 * .01)"></div>
+          </div>
+
+          <div class='header-inner container--fluid header-mobile-layout-logo-left-nav-right header-layout-nav-left' data-test="header-inner">
+            <!-- Background -->
+            <div class="header-background theme-bg--primary"></div>
+
+            <!-- Desktop Header -->
+            <div class="header-display-desktop" data-content-field="site-title">
+              <div class="header-title-nav-wrapper">
+                <!-- Logo -->
+                <div class="header-title" data-animation-role="header-element">
+                  <div class="header-title-logo">
+                    <a href="/" data-animation-role="header-element">
+                      <img src="{{ url_for('static', filename='images/smu-logo.png') }}" alt="Singapore Management University" style="display:block" loading="eager" decoding="async" data-loader="raw">
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="header-nav">
+                  <div class="header-nav-wrapper">
+                    <nav class="header-nav-list">
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/' %}header-nav-item--active{% endif %}">
+                        <a href="/" data-animation-role="header-element" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/get-started' %}header-nav-item--active{% endif %}">
+                        <a href="/get-started" data-animation-role="header-element" {% if request.path == '/get-started' %}aria-current="page"{% endif %}>Get Started</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/student-dashboard' %}header-nav-item--active{% endif %}">
+                        <a href="/student-dashboard" data-animation-role="header-element" {% if request.path == '/student-dashboard' %}aria-current="page"{% endif %}>Student Dashboard</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/peer-evaluation' %}header-nav-item--active{% endif %}">
+                        <a href="/peer-evaluation" data-animation-role="header-element" {% if request.path == '/peer-evaluation' %}aria-current="page"{% endif %}>Peer Evaluation</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/confirmation-screens' %}header-nav-item--active{% endif %}">
+                        <a href="/confirmation-screens" data-animation-role="header-element" {% if request.path == '/confirmation-screens' %}aria-current="page"{% endif %}>Confirmation Screens</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/our-approach' %}header-nav-item--active{% endif %}">
+                        <a href="/our-approach" data-animation-role="header-element" {% if request.path == '/our-approach' %}aria-current="page"{% endif %}>Our Approach</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/about' %}header-nav-item--active{% endif %}">
+                        <a href="/about" data-animation-role="header-element" {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/team' %}header-nav-item--active{% endif %}">
+                        <a href="/team" data-animation-role="header-element" {% if request.path == '/team' %}aria-current="page"{% endif %}>Team</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/contact' %}header-nav-item--active{% endif %}">
+                        <a href="/contact" data-animation-role="header-element" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact</a>
+                      </div>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="header-actions header-actions--right">
+                <div class="showOnMobile"></div>
+                <div class="showOnDesktop"></div>
+
+                <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
+                  <a class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary" href="/get-started">
+                    Logout
+                  </a>
+                </div>
+              </div>
+
+              <!-- Burger Menu -->
+              <style>
+                .top-bun, .patty, .bottom-bun { height: 1px; }
+              </style>
+              <div class="header-burger menu-overlay-has-visible-non-navigation-items" data-animation-role="header-element">
+                <button class="header-burger-btn burger" data-test="header-burger">
+                  <span hidden class="js-header-burger-open-title visually-hidden">Open Menu</span>
+                  <span hidden class="js-header-burger-close-title visually-hidden">Close Menu</span>
+                  <div class="burger-box">
+                    <div class="burger-inner header-menu-icon-doubleLineHamburger">
+                      <div class="top-bun"></div>
+                      <div class="patty"></div>
+                      <div class="bottom-bun"></div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Mobile Header -->
+            <div class="header-display-mobile" data-content-field="site-title">
+              <div class="header-title-nav-wrapper">
+                <!-- Logo -->
+                <div class="header-title" data-animation-role="header-element">
+                  <div class="header-title-logo">
+                    <a href="/" data-animation-role="header-element">
+                      <img src="{{ url_for('static', filename='images/smu-logo.png') }}" alt="Singapore Management University" style="display:block" loading="eager" decoding="async" data-loader="raw">
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="header-nav">
+                  <div class="header-nav-wrapper">
+                    <nav class="header-nav-list">
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/' %}header-nav-item--active{% endif %}">
+                        <a href="/" data-animation-role="header-element" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/get-started' %}header-nav-item--active{% endif %}">
+                        <a href="/get-started" data-animation-role="header-element" {% if request.path == '/get-started' %}aria-current="page"{% endif %}>Get Started</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/student-dashboard' %}header-nav-item--active{% endif %}">
+                        <a href="/student-dashboard" data-animation-role="header-element" {% if request.path == '/student-dashboard' %}aria-current="page"{% endif %}>Student Dashboard</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/peer-evaluation' %}header-nav-item--active{% endif %}">
+                        <a href="/peer-evaluation" data-animation-role="header-element" {% if request.path == '/peer-evaluation' %}aria-current="page"{% endif %}>Peer Evaluation</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/confirmation-screens' %}header-nav-item--active{% endif %}">
+                        <a href="/confirmation-screens" data-animation-role="header-element" {% if request.path == '/confirmation-screens' %}aria-current="page"{% endif %}>Confirmation Screens</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/our-approach' %}header-nav-item--active{% endif %}">
+                        <a href="/our-approach" data-animation-role="header-element" {% if request.path == '/our-approach' %}aria-current="page"{% endif %}>Our Approach</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/about' %}header-nav-item--active{% endif %}">
+                        <a href="/about" data-animation-role="header-element" {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/team' %}header-nav-item--active{% endif %}">
+                        <a href="/team" data-animation-role="header-element" {% if request.path == '/team' %}aria-current="page"{% endif %}>Team</a>
+                      </div>
+
+                      <div class="header-nav-item header-nav-item--collection {% if request.path == '/contact' %}header-nav-item--active{% endif %}">
+                        <a href="/contact" data-animation-role="header-element" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact</a>
+                      </div>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="header-actions header-actions--right">
+                <div class="showOnMobile"></div>
+                <div class="showOnDesktop"></div>
+
+                <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
+                  <a class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary" href="/get-started">
+                    Logout
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <!-- End Header -->
+
+      <!-- Main Content Block -->
+      {% block content %}
+      {% endblock %}
+
+    </div>
+
+    <!-- Footer Scripts -->
+    {% block footer_scripts %}{% endblock %}
+  </body>
+</html>
+
