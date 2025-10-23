@@ -160,14 +160,18 @@
         padding: 0 !important; /* Remove the 6% padding that's causing offset */
         display: flex !important;
         justify-content: center !important;
-        align-items: center !important;
+        align-items: flex-start !important; /* Push form to top instead of center */
         background-color: transparent !important; /* Transparent since body has the background */
+        margin-top: 20px !important; /* Small gap between Key text and form */
+        margin-bottom: 20px !important; /* Reduce bottom spacing */
       }
       
       /* Style the form wrapper - now just contains the white form */
       .form-wrapper {
         background-color: transparent !important; /* Transparent since body has the background */
         padding: 60px 80px !important; /* Increased padding to extend beyond form content */
+        align-items: flex-start !important; /* Ensure form starts at top */
+        justify-content: center !important; /* Keep horizontal centering */
         margin: 20px auto !important; /* Center the form with top/bottom margin */
         border-radius: 15px !important; /* Slightly larger radius */
         box-shadow: none !important; /* Remove shadow since background is now the page */
@@ -276,14 +280,14 @@
         background-color: #f0f8ff !important;
       }
       
-      /* Hide the actual checkbox */
-      .option input[type="checkbox"] {
+      /* Hide the actual radio button */
+      .option input[type="radio"] {
         display: none !important;
       }
       
-      /* Style the label when checkbox is checked */
-      .option input[type="checkbox"]:checked + label,
-      .option label:has(input[type="checkbox"]:checked) {
+      /* Style the label when radio button is checked */
+      .option input[type="radio"]:checked + label,
+      .option label:has(input[type="radio"]:checked) {
         background-color: #4A9EFF !important;
         color: #ffffff !important;
         border-color: #4A9EFF !important;
@@ -298,28 +302,36 @@
     </style>
     
     <script>
-      // Handle checkbox styling when clicked
+      // Handle radio button styling when clicked
       document.addEventListener('DOMContentLoaded', function() {
-        const checkboxes = document.querySelectorAll('.option input[type="checkbox"]');
+        const radioButtons = document.querySelectorAll('.option input[type="radio"]');
         
-        checkboxes.forEach(function(checkbox) {
-          // Add click event listener to each checkbox
-          checkbox.addEventListener('change', function() {
+        radioButtons.forEach(function(radioButton) {
+          // Add click event listener to each radio button
+          radioButton.addEventListener('change', function() {
             const label = this.closest('label');
+            const name = this.name;
+            
+            // Reset all other radio buttons in the same group
+            const sameGroupRadios = document.querySelectorAll(`input[type="radio"][name="${name}"]`);
+            sameGroupRadios.forEach(function(radio) {
+              const radioLabel = radio.closest('label');
+              radioLabel.style.backgroundColor = '#ffffff';
+              radioLabel.style.color = '#333';
+              radioLabel.style.borderColor = '#ccc';
+            });
+            
+            // Style the selected radio button
             if (this.checked) {
               label.style.backgroundColor = '#4A9EFF';
               label.style.color = '#ffffff';
               label.style.borderColor = '#4A9EFF';
-            } else {
-              label.style.backgroundColor = '#ffffff';
-              label.style.color = '#333';
-              label.style.borderColor = '#ccc';
             }
           });
           
           // Set initial state
-          const label = checkbox.closest('label');
-          if (checkbox.checked) {
+          const label = radioButton.closest('label');
+          if (radioButton.checked) {
             label.style.backgroundColor = '#4A9EFF';
             label.style.color = '#ffffff';
             label.style.borderColor = '#4A9EFF';
@@ -999,7 +1011,7 @@
                 <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
                   <a
                     class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary"
-                    href="/get-started"
+                    href="{{ url_for('logout') }}"
                     
                   >
                     Logout
@@ -1265,7 +1277,7 @@
                 <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
                   <a
                     class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary"
-                    href="/get-started"
+                    href="{{ url_for('logout') }}"
                     
                   >
                     Logout
@@ -1688,7 +1700,7 @@
             <div class="header-menu-cta">
               <a
                 class="theme-btn--primary btn sqs-button-element--primary"
-                href="/get-started"
+                href="{{ url_for('logout') }}"
                 
               >
                 Logout
@@ -2129,7 +2141,7 @@
     <style>
       #block-e879b03e151e084b3cba {
         box-sizing: border-box;
-        height: 100%;
+        height: auto !important; /* Remove full height to prevent centering */
         padding: 6% 6% 6% 6%;
         border-radius: 0px 0px 0px 0px;
 
@@ -2176,1445 +2188,992 @@
     >
       
         <div class="field-list clear">
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset id="cff8453b-5fe8-4e4e-b2db-688cb487444c" class="form-item fields name required">
-                
-            <legend class="title">
-              Student Evaluator
-              
-                <span class="required" aria-hidden="true">*</span>
-              
-            </legend>
-          
-                
-                <div class="field first-name">
-                  <label class="caption">
-                    <input
-                        class="field-element field-control"
-                        name="fname"
-                        x-autocompletetype="given-name"
-                        type="text"
-                        spellcheck="false"
-                        maxlength="30"
-                        data-title="First"
-                        aria-required="true"
-                    />
-                    <span class="caption-text">First Name</span>
-                  </label>
-                </div>
-                <div class="field last-name">
-                  <label class="caption">
-                    <input
-                        class="field-element field-control"
-                        name="lname"
-                        x-autocompletetype="surname"
-                        type="text"
-                        spellcheck="false"
-                        maxlength="30"
-                        data-title="Last"
-                        aria-required="true"
-                    />
-                    <span class="caption-text">Last Name</span>
-                  </label>
-                </div>
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset id="name-yui_3_17_2_1_1553888888520_3744" class="form-item fields name required">
-                
-            <legend class="title">
-              Student Evaluatee
-              
-                <span class="required" aria-hidden="true">*</span>
-              
-            </legend>
-          
-                
-                <div class="field first-name">
-                  <label class="caption">
-                    <input
-                        class="field-element field-control"
-                        name="fname"
-                        x-autocompletetype="given-name"
-                        type="text"
-                        spellcheck="false"
-                        maxlength="30"
-                        data-title="First"
-                        aria-required="true"
-                    />
-                    <span class="caption-text">First Name</span>
-                  </label>
-                </div>
-                <div class="field last-name">
-                  <label class="caption">
-                    <input
-                        class="field-element field-control"
-                        name="lname"
-                        x-autocompletetype="surname"
-                        type="text"
-                        spellcheck="false"
-                        maxlength="30"
-                        data-title="Last"
-                        aria-required="true"
-                    />
-                    <span class="caption-text">Last Name</span>
-                  </label>
-                </div>
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <div id="select-1da02bf5-2a58-401a-ad16-ff7c6a2ecdd6" class="form-item field select">
-                
-            <label class="title" for="select-1da02bf5-2a58-401a-ad16-ff7c6a2ecdd6-field">
-              Course ID
-              
-            </label>
-          
-                
-                
-                <select
-                    id="select-1da02bf5-2a58-401a-ad16-ff7c6a2ecdd6-field"
-                    name="select-1da02bf5-2a58-401a-ad16-ff7c6a2ecdd6-field"
-                    
-                >
-                  
-                    <option value="Option 1">Option 1</option>
-                  
-                    <option value="Option 2">Option 2</option>
-                  
-                  <optgroup label=""></optgroup>
-                </select>
-              </div>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset id="c4feb875-f54a-4406-9fb3-3fc84b21e732" class="form-item fields date">
-                
-            <legend class="title">
-              Evaluation Completion Date 
-              
-            </legend>
-          
-                
-                <div class="field month two-digits">
-                  <label class="caption">
-                    <input
-                        class="field-element"
-                        type="text"
-                        maxlength="2"
-                        data-title="Month"
-                        
-                    />
-                    <span class="caption-text">MM</span>
-                  </label>
-                </div>
-                <div class="field day two-digits">
-                  <label class="caption">
-                    <input
-                      class="field-element"
-                      type="text"
-                      maxlength="2"
-                      data-title="Day"
-                      
-                      />
-                    <span class="caption-text">DD</span>
-                  </label>
-                </div>
-                <div class="field year four-digits">
-                  <label class="caption">
-                    <input
-                        class="field-element"
-                        type="text"
-                        maxlength="4"
-                        data-title="Year"
-                        
-                    />
-                    <span class="caption-text">YYYY</span>
-                  </label>
-                </div>
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset id="date-95c12d24-6071-4c37-9409-2cc8b8fb0a12" class="form-item fields date">
-                
-            <legend class="title">
-              Evaluation Due Date
-              
-            </legend>
-          
-                
-                <div class="field month two-digits">
-                  <label class="caption">
-                    <input
-                        class="field-element"
-                        type="text"
-                        maxlength="2"
-                        data-title="Month"
-                        
-                    />
-                    <span class="caption-text">MM</span>
-                  </label>
-                </div>
-                <div class="field day two-digits">
-                  <label class="caption">
-                    <input
-                      class="field-element"
-                      type="text"
-                      maxlength="2"
-                      data-title="Day"
-                      
-                      />
-                    <span class="caption-text">DD</span>
-                  </label>
-                </div>
-                <div class="field year four-digits">
-                  <label class="caption">
-                    <input
-                        class="field-element"
-                        type="text"
-                        maxlength="4"
-                        data-title="Year"
-                        
-                    />
-                    <span class="caption-text">YYYY</span>
-                  </label>
-                </div>
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="2b0be2f5-0b3c-4c58-947d-14576b41739d"
-                  class="form-item field checkbox"
-                  
-              >
-                
+          <!-- Student Evaluatee Dropdown -->
+          <fieldset class="form-item field select">
+            <legend class="title">Student Evaluatee</legend>
+            <select name="evaluatee" required>
+              {% for student in evaluatees %}
+                <option value="{{ student.StudentID }}">{{ student.Name }}</option>
+              {% endfor %}
+            </select>
+          </fieldset>
+
+          <!-- Course Information -->
+          {% if course %}
+          <fieldset class="form-item field">
+            <legend class="title">Course Information</legend>
+            <p class="course-line">
+              {{ course.CourseCode }} - {{ course.CourseName }} - {{ course.ProfessorName }} - {{ course.Semester }} - {{ course.Year }} - {{ course.CourseTime }}
+            </p>
+          </fieldset>
+
+          <!-- Evaluation Due Date -->
+          <fieldset class="form-item field">
+            <legend class="title">Evaluation Due Date</legend>
+            <p>{{ course.EvalDueDate.strftime('%B %d, %Y') }}</p>
+          </fieldset>
+          {% endif %}
+
+          <!-- Question 1: Contributes to Team Project -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
               Contributes to Team Project
-              
             </legend>
-          
-                <div class="description">Participates actively and accepts a fair share of the group work</div>
-                
-                <div class="option"><label><input type="checkbox" name="2b0be2f5-0b3c-4c58-947d-14576b41739d-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="2b0be2f5-0b3c-4c58-947d-14576b41739d-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="2b0be2f5-0b3c-4c58-947d-14576b41739d-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="2b0be2f5-0b3c-4c58-947d-14576b41739d-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="2b0be2f5-0b3c-4c58-947d-14576b41739d-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="ca678d9c-d171-4816-b159-9a6b8f11ff76"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Works skillfully on assigned tasks and completes them on time</div>
-                
-                <div class="option"><label><input type="checkbox" name="ca678d9c-d171-4816-b159-9a6b8f11ff76-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ca678d9c-d171-4816-b159-9a6b8f11ff76-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ca678d9c-d171-4816-b159-9a6b8f11ff76-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ca678d9c-d171-4816-b159-9a6b8f11ff76-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ca678d9c-d171-4816-b159-9a6b8f11ff76-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Gives timely, constructive feedback to team members, in the appropriate format</div>
-                
-                <div class="option"><label><input type="checkbox" name="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="checkbox-6f2fd5f4-d565-42b4-a37d-b545bc2b8ecf-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="61e32c08-ae20-4634-b993-2c8b2f5c3c29"
-                  class="form-item field checkbox"
-                  
-              >
-                
+            <div class="description">Participates actively and accepts a fair share of the group work</div>
+            <div class="option"><label><input type="radio" name="contribution" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="contribution" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="contribution" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="contribution" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="contribution" value="4"/> 4= Always</label></div>
+          </fieldset>
+
+          <!-- Question 2: Facilitates Contributions of Others -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
               Facilitates Contributions of Others
-              
             </legend>
-          
-                <div class="description">Communicates actively and constructively</div>
-                
-                <div class="option"><label><input type="checkbox" name="61e32c08-ae20-4634-b993-2c8b2f5c3c29-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="61e32c08-ae20-4634-b993-2c8b2f5c3c29-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="61e32c08-ae20-4634-b993-2c8b2f5c3c29-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="61e32c08-ae20-4634-b993-2c8b2f5c3c29-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="61e32c08-ae20-4634-b993-2c8b2f5c3c29-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="6d4059ed-c201-44e8-84ea-7624c459ca70"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Encourages all perspective be considered and acknowledges contributions of others</div>
-                
-                <div class="option"><label><input type="checkbox" name="6d4059ed-c201-44e8-84ea-7624c459ca70-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="6d4059ed-c201-44e8-84ea-7624c459ca70-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="6d4059ed-c201-44e8-84ea-7624c459ca70-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="6d4059ed-c201-44e8-84ea-7624c459ca70-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="6d4059ed-c201-44e8-84ea-7624c459ca70-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="f8158185-e1ae-4b60-84f1-83cc0023b158"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Constructively builds on contributions of others and integrates own work with work of others</div>
-                
-                <div class="option"><label><input type="checkbox" name="f8158185-e1ae-4b60-84f1-83cc0023b158-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="f8158185-e1ae-4b60-84f1-83cc0023b158-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="f8158185-e1ae-4b60-84f1-83cc0023b158-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="f8158185-e1ae-4b60-84f1-83cc0023b158-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="f8158185-e1ae-4b60-84f1-83cc0023b158-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="bc6ba595-f885-4ac4-86e1-f49642d7f81d"
-                  class="form-item field checkbox"
-                  
-              >
-                
+            <div class="description">Works skillfully on assigned tasks and completes them on time</div>
+            <div class="option"><label><input type="radio" name="collaboration" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="collaboration" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="collaboration" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="collaboration" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="collaboration" value="4"/> 4= Always</label></div>
+          </fieldset>
+
+          <!-- Question 3: Planning and Management -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
               Planning and Management
-              
             </legend>
-          
-                <div class="description">Takes on an appropriate role in group (e.g. leader, note taker)</div>
-                
-                <div class="option"><label><input type="checkbox" name="bc6ba595-f885-4ac4-86e1-f49642d7f81d-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="bc6ba595-f885-4ac4-86e1-f49642d7f81d-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="bc6ba595-f885-4ac4-86e1-f49642d7f81d-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="bc6ba595-f885-4ac4-86e1-f49642d7f81d-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="bc6ba595-f885-4ac4-86e1-f49642d7f81d-field" value="4= Always"/> 4= Always</label></div>
-                
+            <div class="description">Gives timely, constructive feedback to team members, in the appropriate format</div>
+            <div class="option"><label><input type="radio" name="planning" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="planning" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="planning" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="planning" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="planning" value="4"/> 4= Always</label></div>
               </fieldset>
             
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="0903c7ad-98c9-4059-802a-60f4567c4545"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Clarifies goals and plans the project</div>
-                
-                <div class="option"><label><input type="checkbox" name="0903c7ad-98c9-4059-802a-60f4567c4545-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0903c7ad-98c9-4059-802a-60f4567c4545-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0903c7ad-98c9-4059-802a-60f4567c4545-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0903c7ad-98c9-4059-802a-60f4567c4545-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0903c7ad-98c9-4059-802a-60f4567c4545-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="ea1ab834-5f14-4e89-b23f-07fcc40810cf"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Reports to team on progress</div>
-                
-                <div class="option"><label><input type="checkbox" name="ea1ab834-5f14-4e89-b23f-07fcc40810cf-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ea1ab834-5f14-4e89-b23f-07fcc40810cf-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ea1ab834-5f14-4e89-b23f-07fcc40810cf-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ea1ab834-5f14-4e89-b23f-07fcc40810cf-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="ea1ab834-5f14-4e89-b23f-07fcc40810cf-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="c7620a33-d72d-4e35-8784-2ec8f53e7136"
-                  class="form-item field checkbox"
-                  
-              >
-                
+          <!-- Question 4: Fosters a Team Climate -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
               Fosters a Team Climate
-              
             </legend>
-          
-                <div class="description">Ensures consistency between words, tone, facial expression and body language</div>
-                
-                <div class="option"><label><input type="checkbox" name="c7620a33-d72d-4e35-8784-2ec8f53e7136-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="c7620a33-d72d-4e35-8784-2ec8f53e7136-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="c7620a33-d72d-4e35-8784-2ec8f53e7136-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="c7620a33-d72d-4e35-8784-2ec8f53e7136-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="c7620a33-d72d-4e35-8784-2ec8f53e7136-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
+            <div class="description">Communicates actively and constructively</div>
+            <div class="option"><label><input type="radio" name="communication" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="communication" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="communication" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="communication" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="communication" value="4"/> 4= Always</label></div>
+          </fieldset>
 
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="d2841904-1c5c-489a-8af3-3ef5d875d6b3"
-                  class="form-item field checkbox"
-                  
-              >
-                
+          <!-- Question 5: Manages a Potential Conflict -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
-              
-              
+              Manages a Potential Conflict
             </legend>
-          
-                <div class="description">Expresses positivity and optimism about team members and project</div>
-                
-                <div class="option"><label><input type="checkbox" name="d2841904-1c5c-489a-8af3-3ef5d875d6b3-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="d2841904-1c5c-489a-8af3-3ef5d875d6b3-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="d2841904-1c5c-489a-8af3-3ef5d875d6b3-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="d2841904-1c5c-489a-8af3-3ef5d875d6b3-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="d2841904-1c5c-489a-8af3-3ef5d875d6b3-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="0203a913-93d3-4c20-82ad-40bff4d25807"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              Manages Potential Conflict
-              
-            </legend>
-          
-                <div class="description">Displays appropriate assertiveness: neither dominating, submissive, nor passive aggressive</div>
-                
-                <div class="option"><label><input type="checkbox" name="0203a913-93d3-4c20-82ad-40bff4d25807-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0203a913-93d3-4c20-82ad-40bff4d25807-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0203a913-93d3-4c20-82ad-40bff4d25807-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0203a913-93d3-4c20-82ad-40bff4d25807-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="0203a913-93d3-4c20-82ad-40bff4d25807-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="edcd89a2-0e5d-427c-b38c-ea196ce60e1a"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Contributes appropriately to healthy debate</div>
-                
-                <div class="option"><label><input type="checkbox" name="edcd89a2-0e5d-427c-b38c-ea196ce60e1a-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="edcd89a2-0e5d-427c-b38c-ea196ce60e1a-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="edcd89a2-0e5d-427c-b38c-ea196ce60e1a-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="edcd89a2-0e5d-427c-b38c-ea196ce60e1a-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="edcd89a2-0e5d-427c-b38c-ea196ce60e1a-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="628fe8ea-84ad-41f9-9e02-3b4f60a8613d"
-                  class="form-item field checkbox"
-                  
-              >
-                
-            <legend class="title">
-              
-              
-            </legend>
-          
-                <div class="description">Responds to and manages direct/indirect conflict constructively and effectively</div>
-                
-                <div class="option"><label><input type="checkbox" name="628fe8ea-84ad-41f9-9e02-3b4f60a8613d-field" value="0= Never"/> 0= Never</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="628fe8ea-84ad-41f9-9e02-3b4f60a8613d-field" value="1= Sometimes"/> 1= Sometimes</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="628fe8ea-84ad-41f9-9e02-3b4f60a8613d-field" value="2= Usually"/> 2= Usually</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="628fe8ea-84ad-41f9-9e02-3b4f60a8613d-field" value="3= Regularly"/> 3= Regularly</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="628fe8ea-84ad-41f9-9e02-3b4f60a8613d-field" value="4= Always"/> 4= Always</label></div>
-                
-              </fieldset>
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-        
-
-          
-
-          
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-
-            
-              <fieldset
-                  id="baaf146c-82d8-4699-afa9-602cca56dfe9"
-                  class="form-item field checkbox"
-                  
-              >
-                
+            <div class="description">Encourages all perspectives be considered and acknowledges contributions of others</div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="4"/> 4= Always</label></div>
+          </fieldset>
+
+          <!-- Question 6: Overall -->
+          <fieldset class="form-item field checkbox">
             <legend class="title">
               Overall
-              
             </legend>
-          
-                <div class="description">Generally how would you rate your peer on effort they put into team tasks, their manner of interacting with others, and the quantity and quality of contributions they make to team discussions</div>
-                
-                <div class="option"><label><input type="checkbox" name="baaf146c-82d8-4699-afa9-602cca56dfe9-field" value="0= Unacceptable"/> 0= Unacceptable</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="baaf146c-82d8-4699-afa9-602cca56dfe9-field" value="1= Poor"/> 1= Poor</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="baaf146c-82d8-4699-afa9-602cca56dfe9-field" value="2= Acceptable"/> 2= Acceptable</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="baaf146c-82d8-4699-afa9-602cca56dfe9-field" value="3= Good"/> 3= Good</label></div>
-                
-                <div class="option"><label><input type="checkbox" name="baaf146c-82d8-4699-afa9-602cca56dfe9-field" value="4= Excellent"/> 4= Excellent</label></div>
-                
+            <div class="description">Generally, how would you rate your peer on the effort they put into team tasks, their manner of interacting with others, and the quantity and quality of contributions they make to team discussions?</div>
+            <div class="option"><label><input type="radio" name="overall" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="overall" value="1"/> 1= Sometimes</label></div>
+            <div class="option"><label><input type="radio" name="overall" value="2"/> 2= Usually</label></div>
+            <div class="option"><label><input type="radio" name="overall" value="3"/> 3= Regularly</label></div>
+            <div class="option"><label><input type="radio" name="overall" value="4"/> 4= Always</label></div>
               </fieldset>
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+        
+
+          
+
+          
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
+
+            
             
 
             

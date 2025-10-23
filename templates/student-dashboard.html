@@ -34,7 +34,7 @@
 <link rel="preconnect" href="https://p.typekit.net" crossorigin>
 <script type="text/javascript" src="//use.typekit.net/ik/ydORCliTmiBkWvouBrwYJ77X2x1gW0ywOKsr4LyekJXfecjJXnX1IyvhF2jtFRZLFRy8FQyKjD88FhIDjDqajDSu52BcjRq3e6MKfcBqdhoTSkuaZAJ7fbRhmgMMeMb6MKG4fV89IMMjgkMfH6qJrBbbMg65JMJ7fbREmgMMegI6MTMgvCeWU3j.js" async fetchpriority="high" onload="try{Typekit.load();}catch(e){} document.documentElement.classList.remove('wf-loading');"></script>
 <script>document.documentElement.classList.add('wf-loading')</script>
-<style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; }</style>
+<style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; } .course-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }</style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pontano+Sans:ital,wght@0,400;0,700"><script type="text/javascript"  defer="true" nomodule="nomodule" src="{{ url_for('static', filename='js/legacy.js') }}"></script>
 <script type="text/javascript"  defer="true" src="{{ url_for('static', filename='js/modern.js') }}"></script>
@@ -722,7 +722,7 @@
                 <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
                   <a
                     class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary"
-                    href="/get-started"
+                    href="{{ url_for('logout') }}"
                     
                   >
                     Logout
@@ -988,7 +988,7 @@
                 <div class="header-actions-action header-actions-action--cta" data-animation-role="header-element">
                   <a
                     class="btn btn--border theme-btn--primary-inverse sqs-button-element--primary"
-                    href="/get-started"
+                    href="{{ url_for('logout') }}"
                     
                   >
                     Logout
@@ -1411,7 +1411,7 @@
             <div class="header-menu-cta">
               <a
                 class="theme-btn--primary btn sqs-button-element--primary"
-                href="/get-started"
+                href="{{ url_for('logout') }}"
                 
               >
                 Logout
@@ -1981,6 +1981,7 @@
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
   <h2 style="text-align:center;white-space:pre-wrap;">Student Dashboard</h2>
+  <h3 style="text-align:center;white-space:pre-wrap;">Hello {{ session.user_name or 'User' }}!</h3>
 </div>
 
 
@@ -2142,7 +2143,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 style="white-space:pre-wrap;">BIT 4454</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="7c99bc4f-cb0d-48ca-aef4-71d5b430b3fe">Due October 12</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[0][1] if evaluations|length >= 1 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="7c99bc4f-cb0d-48ca-aef4-71d5b430b3fe">Due {{ (evaluations[0][3].strftime('%B %d') if evaluations|length >= 1 and evaluations[0][3] else "TBD") }}</span></h4>
 </div>
 
 
@@ -2191,7 +2192,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 style="white-space:pre-wrap;">BIT 4444</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="462999b2-ed6c-4a81-ac99-9539a2561f90">Due October 20</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[1][1] if evaluations|length >= 2 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="462999b2-ed6c-4a81-ac99-9539a2561f90">Due {{ (evaluations[1][3].strftime('%B %d') if evaluations|length >= 2 and evaluations[1][3] else "TBD") }}</span></h4>
 </div>
 
 
@@ -2240,7 +2241,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 style="white-space:pre-wrap;">BIT 3444</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="201cfa67-8237-4fa4-a639-bbc4a3ef9dd1">Due November 1</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[2][1] if evaluations|length >= 3 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="201cfa67-8237-4fa4-a639-bbc4a3ef9dd1">Due {{ (evaluations[2][3].strftime('%B %d') if evaluations|length >= 3 and evaluations[2][3] else "TBD") }}</span></h4>
 </div>
 
 
