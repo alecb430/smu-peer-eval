@@ -2018,7 +2018,7 @@
   data-button-type="primary"
 > 
   <a 
-    href="{{ url_for('peer_evaluation') }}" 
+    href="{% if evaluations|length >= 1 %}/peer_evaluation/{{ evaluations[0][0] }}{% else %}#{% endif %}" 
     class="sqs-block-button-element--medium sqs-button-element--primary sqs-block-button-element"
     data-sqsp-button
     
@@ -2040,7 +2040,7 @@
   data-button-type="primary"
 > 
   <a 
-    href="{{ url_for('peer_evaluation') }}" 
+    href="{% if evaluations|length >= 2 %}/peer_evaluation/{{ evaluations[1][0] }}{% else %}#{% endif %}" 
     class="sqs-block-button-element--medium sqs-button-element--primary sqs-block-button-element"
     data-sqsp-button
     
@@ -2062,7 +2062,7 @@
   data-button-type="primary"
 > 
   <a 
-    href="{{ url_for('peer_evaluation') }}" 
+    href="{% if evaluations|length >= 3 %}/peer_evaluation/{{ evaluations[2][0] }}{% else %}#{% endif %}" 
     class="sqs-block-button-element--medium sqs-button-element--primary sqs-block-button-element"
     data-sqsp-button
     
@@ -2143,7 +2143,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[0][1] if evaluations|length >= 1 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="7c99bc4f-cb0d-48ca-aef4-71d5b430b3fe">Due {{ (evaluations[0][3].strftime('%B %d') if evaluations|length >= 1 and evaluations[0][3] else "TBD") }}</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ (evaluations[0][1] + " – " + evaluations[0][2]) if evaluations|length >= 1 else "No evaluations assigned" }}</h3>{% if evaluations|length >= 1 %}<p class="evaluatee">Section: {{ evaluations[0][3] }}</p><p class="evaluatee">Fill out for: {{ evaluations[0][4] }}</p>{% endif %}<h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="7c99bc4f-cb0d-48ca-aef4-71d5b430b3fe">{% if evaluations|length >= 1 and evaluations[0][5] %}Due {{ evaluations[0][5].strftime('%B %d') }}{% endif %}</span></h4>
 </div>
 
 
@@ -2192,7 +2192,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[1][1] if evaluations|length >= 2 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="462999b2-ed6c-4a81-ac99-9539a2561f90">Due {{ (evaluations[1][3].strftime('%B %d') if evaluations|length >= 2 and evaluations[1][3] else "TBD") }}</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ (evaluations[1][1] + " – " + evaluations[1][2]) if evaluations|length >= 2 else "No evaluation assigned" }}</h3>{% if evaluations|length >= 2 %}<p class="evaluatee">Section: {{ evaluations[1][3] }}</p><p class="evaluatee">Fill out for: {{ evaluations[1][4] }}</p>{% endif %}<h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="462999b2-ed6c-4a81-ac99-9539a2561f90">{% if evaluations|length >= 2 and evaluations[1][5] %}Due {{ evaluations[1][5].strftime('%B %d') }}{% endif %}</span></h4>
 </div>
 
 
@@ -2241,7 +2241,7 @@
 
 
 <div class="sqs-html-content" data-sqsp-text-block-content>
-  <h3 class="course-code" style="white-space:pre-wrap;">{{ evaluations[2][1] if evaluations|length >= 3 else "TBD Course" }}</h3><h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="201cfa67-8237-4fa4-a639-bbc4a3ef9dd1">Due {{ (evaluations[2][3].strftime('%B %d') if evaluations|length >= 3 and evaluations[2][3] else "TBD") }}</span></h4>
+  <h3 class="course-code" style="white-space:pre-wrap;">{{ (evaluations[2][1] + " – " + evaluations[2][2]) if evaluations|length >= 3 else "No evaluation assigned" }}</h3>{% if evaluations|length >= 3 %}<p class="evaluatee">Section: {{ evaluations[2][3] }}</p><p class="evaluatee">Fill out for: {{ evaluations[2][4] }}</p>{% endif %}<h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="201cfa67-8237-4fa4-a639-bbc4a3ef9dd1">{% if evaluations|length >= 3 and evaluations[2][5] %}Due {{ evaluations[2][5].strftime('%B %d') }}{% endif %}</span></h4>
 </div>
 
 

@@ -173,199 +173,119 @@ def get_started():
     
     return render_template('get-started.html')
 
-@app.route('/peer-evaluation', methods=['GET', 'POST'])
+@app.route('/peer_evaluation/<int:peer_eval_id>', methods=['GET', 'POST'])
 @login_required
-def peer_evaluation():
+def peer_evaluation(peer_eval_id):
+    print(f"PEER EVAL: Loaded route with PeerEvalID={peer_eval_id}")
+    student_id = session.get('user_id')
+    
+    # POST: Submit evaluation
     if request.method == 'POST':
         try:
-            # Debug: Print all form data
-            print("DEBUG: Form data received:")
-            for key, value in request.form.items():
-                print(f"  {key}: {value}")
+            print(f"POST: Submitting evaluation for PeerEvalID={peer_eval_id}")
             
-            # Debug: Print request method and content type
-            print(f"DEBUG: Request method: {request.method}")
-            print(f"DEBUG: Content type: {request.content_type}")
-            print(f"DEBUG: Form keys: {list(request.form.keys())}")
+            # Server-side validation: Check all required fields
+            required_fields = ['contribution', 'collaboration', 'planning', 'communication', 'inclusivity', 'overall']
+            values = {}
             
-            # Get form data
-            contribution = request.form.get('contribution')
-            collaboration = request.form.get('collaboration')
-            communication = request.form.get('communication')
-            planning = request.form.get('planning')
-            inclusivity = request.form.get('inclusivity')
-            overall = request.form.get('overall')
-            evaluatee = request.form.get('evaluatee')
-            student_id = session.get('user_id')
+            for field in required_fields:
+                raw = request.form.get(field)
+                
+                # Check if field is missing or empty
+                if raw is None or raw == '':
+                    print(f"VALIDATION ERROR: Missing field '{field}'")
+                    flash("Please complete all questions before submitting.", 'error')
+                    return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
+                
+                # Convert to integer and validate range
+                try:
+                    v = int(raw)
+                    if v < 0 or v > 4:
+                        print(f"VALIDATION ERROR: Field '{field}' value {v} out of range")
+                        flash("Ratings must be between 0 and 4.", 'error')
+                        return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
+                    values[field] = v
+                except ValueError:
+                    print(f"VALIDATION ERROR: Field '{field}' is not a valid integer")
+                    flash("Invalid rating value provided.", 'error')
+                    return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
             
-            # Debug: Print retrieved values
-            print(f"DEBUG: Retrieved values:")
-            print(f"  contribution: {contribution}")
-            print(f"  collaboration: {collaboration}")
-            print(f"  communication: {communication}")
-            print(f"  planning: {planning}")
-            print(f"  inclusivity: {inclusivity}")
-            print(f"  overall: {overall}")
-            print(f"  evaluatee: {evaluatee}")
-            print(f"  student_id: {student_id}")
+            print(f"VALIDATION PASSED: All fields valid for PeerEvalID={peer_eval_id}")
             
-            # Validate that we have all required data
-            if not all([contribution, collaboration, communication, planning, inclusivity, overall, evaluatee, student_id]):
-                flash('Missing required form data. Please fill out all fields.', 'error')
-                return redirect(url_for('peer_evaluation'))
-            
-            # Check database connection
-            if not connection.is_connected():
-                print("DEBUG: Database connection lost, attempting to reconnect...")
-                connection.reconnect()
-            
-            # First, check if the evaluation record exists and get its current values
+            # Simple UPDATE by PeerEvalID
             cursor = connection.cursor()
             cursor.execute("""
-                SELECT PeerEvalID, Contribution, Collaboration, Communication, Planning, Inclusivity, Overall 
-                FROM peerevaluation 
-                WHERE StudentEvaluator = %s AND StudentEvaluatee = %s
-            """, (student_id, evaluatee))
+                UPDATE peerevaluation
+                SET Contribution = %s, Collaboration = %s, Communication = %s,
+                    Planning = %s, Inclusivity = %s, Overall = %s
+                WHERE PeerEvalID = %s
+            """, (values['contribution'], values['collaboration'], values['communication'], 
+                  values['planning'], values['inclusivity'], values['overall'], peer_eval_id))
             
-            existing_record = cursor.fetchone()
-            print(f"DEBUG: Existing record found: {existing_record}")
-            
-            if not existing_record:
-                cursor.close()
-                flash(f'No evaluation record found for evaluator {student_id} and evaluatee {evaluatee}. Please check your selection.', 'error')
-                return redirect(url_for('peer_evaluation'))
-            
-            # Update the peerevaluation table
-            
-            # Debug: Print the SQL query and parameters
-            print(f"DEBUG: Executing UPDATE query with parameters:")
-            print(f"  StudentEvaluator: {student_id}")
-            print(f"  StudentEvaluatee: {evaluatee}")
-            print(f"  Contribution: {contribution}")
-            print(f"  Collaboration: {collaboration}")
-            print(f"  Communication: {communication}")
-            print(f"  Planning: {planning}")
-            print(f"  Inclusivity: {inclusivity}")
-            print(f"  Overall: {overall}")
-            
-            try:
-                cursor.execute("""
-                    UPDATE peerevaluation
-                    SET
-                        Contribution = %s,
-                        Collaboration = %s,
-                        Communication = %s,
-                        Planning = %s,
-                        Inclusivity = %s,
-                        Overall = %s
-                    WHERE StudentEvaluator = %s AND StudentEvaluatee = %s
-                """, (contribution, collaboration, communication, planning, inclusivity, overall, student_id, evaluatee))
-            except Exception as db_error:
-                print(f"DEBUG: Database error occurred: {str(db_error)}")
-                cursor.close()
-                flash(f'Database error: {str(db_error)}', 'error')
-                return redirect(url_for('peer_evaluation'))
-            
-            # Check if any rows were affected
-            rows_affected = cursor.rowcount
-            print(f"DEBUG: Rows affected by update: {rows_affected}")
+            rows_updated = cursor.rowcount
+            print(f"ROWS UPDATED: {rows_updated}")
             
             connection.commit()
+            cursor.close()
             
-            if rows_affected > 0:
-                # Get the PeerEvalID for the updated record to send to Zapier
-                cursor.execute("""
-                    SELECT PeerEvalID FROM peerevaluation 
-                    WHERE StudentEvaluator = %s AND StudentEvaluatee = %s
-                """, (student_id, evaluatee))
-                
-                peer_eval_result = cursor.fetchone()
-                cursor.close()
-                
-                if peer_eval_result:
-                    peer_eval_id = peer_eval_result[0]
-                    # Send data to Zapier webhook
-                    zapier_success = send_to_zapier(peer_eval_id)
-                    if not zapier_success:
-                        print("Warning: Failed to send data to Zapier webhook, but evaluation was saved successfully")
-                
-                flash('Evaluation submitted successfully!', 'success')
-                return redirect(url_for('confirmation_screens'))
-            else:
-                cursor.close()
-                flash('No evaluation record found to update. Please check your selection.', 'error')
-                return redirect(url_for('peer_evaluation'))
+            # Send to Zapier
+            zapier_success = send_to_zapier(peer_eval_id)
+            if not zapier_success:
+                print("Warning: Zapier webhook failed, but evaluation saved")
+            
+            flash('Evaluation submitted successfully!', 'success')
+            return redirect(url_for('confirmation_screens'))
             
         except Exception as e:
-            print(f"DEBUG: Error occurred: {str(e)}")
-            flash(f'Error submitting evaluation: {str(e)}', 'error')
-            return redirect(url_for('peer_evaluation'))
+            print(f"POST ERROR: {e}")
+            import traceback
+            traceback.print_exc()
+            flash('There was a problem saving your evaluation. Please try again.', 'error')
+            return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
     
-    # GET request - load form data
+    # GET: Load evaluation form
     try:
-        student_id = session.get('user_id')
-        
-        # Get evaluation data for the logged-in student
+        print(f"GET: Loading form for PeerEvalID={peer_eval_id}")
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT 
-                p.PeerEvalID,
-                s.StudentID AS EvaluateeID,
+            SELECT
                 s.Name AS EvaluateeName,
                 c.CourseCode,
                 c.CourseName,
-                pr.Name AS ProfessorName,
-                c.Semester,
-                c.Year,
                 c.CourseTime,
                 p.EvalDueDate
             FROM peerevaluation p
             JOIN student s ON p.StudentEvaluatee = s.StudentID
             JOIN course c ON p.CourseID = c.CourseID
-            JOIN professor pr ON c.ProfessorID = pr.ProfessorID
-            WHERE p.StudentEvaluator = %s
-        """, (student_id,))
+            WHERE p.PeerEvalID = %s
+        """, (peer_eval_id,))
         
-        evaluations = cursor.fetchall()
+        eval_data = cursor.fetchone()
         cursor.close()
         
-        # Convert to list of dictionaries for easier template access
-        evaluation_list = []
-        evaluatees = []
+        if not eval_data:
+            print(f"GET ERROR: No data found for PeerEvalID={peer_eval_id}")
+            flash('Invalid evaluation ID.', 'error')
+            return redirect(url_for('student_dashboard'))
         
-        for eval_item in evaluations:
-            evaluation_data = {
-                'PeerEvalID': eval_item[0],
-                'EvaluateeID': eval_item[1],
-                'EvaluateeName': eval_item[2],
-                'CourseCode': eval_item[3],
-                'CourseName': eval_item[4],
-                'ProfessorName': eval_item[5],
-                'Semester': eval_item[6],
-                'Year': eval_item[7],
-                'CourseTime': eval_item[8],
-                'EvalDueDate': eval_item[9]
-            }
-            evaluation_list.append(evaluation_data)
-            evaluatees.append({
-                'StudentID': eval_item[1],
-                'Name': eval_item[2]
-            })
+        evaluation = {
+            'PeerEvalID': peer_eval_id,
+            'EvaluateeName': eval_data[0],
+            'CourseCode': eval_data[1],
+            'CourseName': eval_data[2],
+            'CourseTime': eval_data[3],
+            'EvalDueDate': eval_data[4]
+        }
         
-        # Get the first evaluation's course info (assuming all evaluations are for the same course)
-        course_info = evaluation_list[0] if evaluation_list else None
-        
-        return render_template('peer-evaluation.html', 
-                             evaluations=evaluation_list,
-                             evaluatees=evaluatees,
-                             course=course_info)
+        print(f"GET SUCCESS: Rendering form for {evaluation['EvaluateeName']}")
+        return render_template('peer-evaluation.html', evaluation=evaluation)
         
     except Exception as e:
-        flash(f'Error loading evaluation form: {str(e)}', 'error')
-        return render_template('peer-evaluation.html', 
-                             evaluations=[],
-                             evaluatees=[],
-                             course=None)
+        print(f"GET ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading evaluation form.', 'error')
+        return redirect(url_for('student_dashboard'))
 
 @app.route('/student-dashboard')
 @login_required
@@ -374,22 +294,31 @@ def student_dashboard():
         # Get the logged-in student's ID from session
         student_id = session.get('user_id')
         
-        # Query evaluations for the logged-in student
+        # Query evaluations for the logged-in student (Sprint 1: Show ALL assignments)
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 p.PeerEvalID,
                 c.CourseCode,
                 c.CourseName,
+                c.CourseTime,
+                s.Name AS EvaluateeName,
                 p.EvalDueDate
             FROM peerevaluation p
+            JOIN student s ON p.StudentEvaluatee = s.StudentID
             JOIN course c ON p.CourseID = c.CourseID
             WHERE p.StudentEvaluator = %s
             ORDER BY COALESCE(p.EvalDueDate, '2999-12-31') ASC
         """, (student_id,))
         
+        print(f"DASHBOARD: Fetching evaluations for student {student_id}")
+        
         evaluations = cursor.fetchall()
         cursor.close()
+        
+        print(f"DASHBOARD: Found {len(evaluations)} evaluations")
+        for i, eval in enumerate(evaluations):
+            print(f"  [{i}] PeerEvalID={eval[0]}, {eval[1]} - {eval[2]}, Evaluatee={eval[4]}")
         
         return render_template('student-dashboard.html', evaluations=evaluations)
         

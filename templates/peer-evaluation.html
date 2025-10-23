@@ -2176,51 +2176,50 @@
   
   <div class="form-inner-wrapper">
     <form
+       id="peer-eval-form"
        data-form-id="68e5a0b6436f8b71673d82d4"
        data-success-redirect=""
        data-dynamic-strings
        autocomplete="on"
        
        method="POST"
-       action="{{ url_for('peer_evaluation') }}"
-       novalidate
+       action="/peer_evaluation/{{ evaluation.PeerEvalID }}"
        
     >
       
         <div class="field-list clear">
-          <!-- Student Evaluatee Dropdown -->
-          <fieldset class="form-item field select">
-            <legend class="title">Student Evaluatee</legend>
-            <select name="evaluatee" required>
-              {% for student in evaluatees %}
-                <option value="{{ student.StudentID }}">{{ student.Name }}</option>
-              {% endfor %}
-            </select>
-          </fieldset>
-
+          
           <!-- Course Information -->
-          {% if course %}
+          {% if evaluation %}
           <fieldset class="form-item field">
             <legend class="title">Course Information</legend>
             <p class="course-line">
-              {{ course.CourseCode }} - {{ course.CourseName }} - {{ course.ProfessorName }} - {{ course.Semester }} - {{ course.Year }} - {{ course.CourseTime }}
+              {{ evaluation.CourseCode }} - {{ evaluation.CourseName }} - {{ evaluation.CourseTime }}
             </p>
           </fieldset>
 
+          <!-- Evaluating -->
+          <fieldset class="form-item field">
+            <legend class="title">Evaluating</legend>
+            <p>{{ evaluation.EvaluateeName }}</p>
+          </fieldset>
+
           <!-- Evaluation Due Date -->
+          {% if evaluation.EvalDueDate %}
           <fieldset class="form-item field">
             <legend class="title">Evaluation Due Date</legend>
-            <p>{{ course.EvalDueDate.strftime('%B %d, %Y') }}</p>
+            <p>{{ evaluation.EvalDueDate.strftime('%B %d, %Y') }}</p>
           </fieldset>
+          {% endif %}
           {% endif %}
 
           <!-- Question 1: Contributes to Team Project -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="contribution">
             <legend class="title">
               Contributes to Team Project
             </legend>
             <div class="description">Participates actively and accepts a fair share of the group work</div>
-            <div class="option"><label><input type="radio" name="contribution" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="contribution" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="contribution" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="contribution" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="contribution" value="3"/> 3= Regularly</label></div>
@@ -2228,12 +2227,12 @@
           </fieldset>
 
           <!-- Question 2: Facilitates Contributions of Others -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="collaboration">
             <legend class="title">
               Facilitates Contributions of Others
             </legend>
             <div class="description">Works skillfully on assigned tasks and completes them on time</div>
-            <div class="option"><label><input type="radio" name="collaboration" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="collaboration" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="collaboration" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="collaboration" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="collaboration" value="3"/> 3= Regularly</label></div>
@@ -2241,12 +2240,12 @@
           </fieldset>
 
           <!-- Question 3: Planning and Management -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="planning">
             <legend class="title">
               Planning and Management
             </legend>
             <div class="description">Gives timely, constructive feedback to team members, in the appropriate format</div>
-            <div class="option"><label><input type="radio" name="planning" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="planning" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="planning" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="planning" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="planning" value="3"/> 3= Regularly</label></div>
@@ -2254,12 +2253,12 @@
               </fieldset>
             
           <!-- Question 4: Fosters a Team Climate -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="communication">
             <legend class="title">
               Fosters a Team Climate
             </legend>
             <div class="description">Communicates actively and constructively</div>
-            <div class="option"><label><input type="radio" name="communication" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="communication" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="communication" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="communication" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="communication" value="3"/> 3= Regularly</label></div>
@@ -2267,12 +2266,12 @@
           </fieldset>
 
           <!-- Question 5: Manages a Potential Conflict -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="inclusivity">
             <legend class="title">
               Manages a Potential Conflict
             </legend>
             <div class="description">Encourages all perspectives be considered and acknowledges contributions of others</div>
-            <div class="option"><label><input type="radio" name="inclusivity" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="inclusivity" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="inclusivity" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="inclusivity" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="inclusivity" value="3"/> 3= Regularly</label></div>
@@ -2280,12 +2279,12 @@
           </fieldset>
 
           <!-- Question 6: Overall -->
-          <fieldset class="form-item field checkbox">
+          <fieldset class="form-item field checkbox" data-group="overall">
             <legend class="title">
               Overall
             </legend>
             <div class="description">Generally, how would you rate your peer on the effort they put into team tasks, their manner of interacting with others, and the quantity and quality of contributions they make to team discussions?</div>
-            <div class="option"><label><input type="radio" name="overall" value="0"/> 0= Never</label></div>
+            <div class="option"><label><input type="radio" name="overall" value="0" required/> 0= Never</label></div>
             <div class="option"><label><input type="radio" name="overall" value="1"/> 1= Sometimes</label></div>
             <div class="option"><label><input type="radio" name="overall" value="2"/> 2= Usually</label></div>
             <div class="option"><label><input type="radio" name="overall" value="3"/> 3= Regularly</label></div>
@@ -3227,6 +3226,48 @@
       
       <div class="hidden form-submission-text">Thank you!</div>
       <div class="hidden form-submission-html" data-submission-html=""></div>
+      
+      <!-- Client-side validation script -->
+      <script>
+      (function() {
+        const form = document.getElementById('peer-eval-form');
+        if (!form) return;
+        
+        const groups = ['contribution', 'collaboration', 'planning', 'communication', 'inclusivity', 'overall'];
+        
+        form.addEventListener('submit', function(e) {
+          let firstMissing = null;
+          
+          // Clear old errors
+          document.querySelectorAll('.field-error').forEach(el => el.remove());
+          
+          for (const name of groups) {
+            const checked = document.querySelector(`input[name="${name}"]:checked`);
+            if (!checked) {
+              e.preventDefault();
+              if (!firstMissing) firstMissing = name;
+              
+              const container = document.querySelector(`[data-group="${name}"]`);
+              if (container) {
+                const err = document.createElement('span');
+                err.className = 'field-error';
+                err.textContent = 'Please select one option.';
+                err.style.color = '#b00020';
+                err.style.display = 'block';
+                err.style.marginTop = '6px';
+                err.style.fontWeight = 'bold';
+                container.appendChild(err);
+              }
+            }
+          }
+          
+          if (firstMissing) {
+            const target = document.querySelector(`[data-group="${firstMissing}"]`);
+            if (target) target.scrollIntoView({behavior: 'smooth', block: 'center'});
+          }
+        });
+      })();
+      </script>
     </form>
   </div>
 </div>
