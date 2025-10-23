@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from db_connect import connection
 from functools import wraps
+import requests
+import logging
 
 app = Flask(__name__)
 app.secret_key = '23320398123'  # Required for flash messages
@@ -14,6 +16,76 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# Zapier webhook helper function
+def send_to_zapier(evaluation_id):
+    """
+    Send evaluation data to Zapier webhook after a new record is inserted/updated.
+    
+    Args:
+        evaluation_id: The EvaluationID (or PeerEvalID) of the evaluation record
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Query the evaluation data with all related information
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT 
+                e1.Email AS evaluator_email,
+                e2.Email AS evaluatee_email,
+                CONCAT(c.course_code, '-', c.semester, '-', c.year, '-', REPLACE(c.course_time, ' ', '')) AS course_id,
+                p.Contribution,
+                p.Collaboration,
+                p.Communication,
+                p.Planning,
+                p.Inclusivity,
+                p.Overall
+            FROM peerevaluation p
+            JOIN student e1 ON p.StudentEvaluator = e1.StudentID
+            JOIN student e2 ON p.StudentEvaluatee = e2.StudentID
+            JOIN course c ON p.CourseID = c.CourseID
+            WHERE p.PeerEvalID = %s
+        """, (evaluation_id,))
+        
+        result = cursor.fetchone()
+        cursor.close()
+        
+        if not result:
+            print(f"ERROR: No evaluation found with PeerEvalID {evaluation_id}")
+            return False
+        
+        # Build the payload dictionary
+        payload = {
+            "evaluator_email": result[0],
+            "evaluatee_email": result[1],
+            "course_id": result[2],
+            "contribution": result[3],
+            "collaboration": result[4],
+            "communication": result[5],
+            "planning": result[6],
+            "inclusivity": result[7],
+            "overall": result[8],
+            "webhook_secret": "smu_pe_6f9c1b3e2a6f4f1e"
+        }
+        
+        # Send POST request to Zapier webhook
+        webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/ursjm8o/"
+        response = requests.post(webhook_url, json=payload, timeout=30)
+        
+        print(f"Zapier response: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            print("Successfully sent evaluation data to Zapier webhook")
+            return True
+        else:
+            print(f"Zapier webhook returned non-200 status: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"Error sending data to Zapier webhook: {str(e)}")
+        return False
 
 # Home route
 @app.route('/')
@@ -199,12 +271,28 @@ def peer_evaluation():
             print(f"DEBUG: Rows affected by update: {rows_affected}")
             
             connection.commit()
-            cursor.close()
             
             if rows_affected > 0:
+                # Get the PeerEvalID for the updated record to send to Zapier
+                cursor.execute("""
+                    SELECT PeerEvalID FROM peerevaluation 
+                    WHERE StudentEvaluator = %s AND StudentEvaluatee = %s
+                """, (student_id, evaluatee))
+                
+                peer_eval_result = cursor.fetchone()
+                cursor.close()
+                
+                if peer_eval_result:
+                    peer_eval_id = peer_eval_result[0]
+                    # Send data to Zapier webhook
+                    zapier_success = send_to_zapier(peer_eval_id)
+                    if not zapier_success:
+                        print("Warning: Failed to send data to Zapier webhook, but evaluation was saved successfully")
+                
                 flash('Evaluation submitted successfully!', 'success')
                 return redirect(url_for('confirmation_screens'))
             else:
+                cursor.close()
                 flash('No evaluation record found to update. Please check your selection.', 'error')
                 return redirect(url_for('peer_evaluation'))
             
