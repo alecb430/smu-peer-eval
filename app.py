@@ -4,6 +4,7 @@ from functools import wraps
 import requests
 import logging
 
+#added comment to test DEMO#
 app = Flask(__name__)
 app.secret_key = '23320398123'  # Required for flash messages
 
