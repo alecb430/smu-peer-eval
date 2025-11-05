@@ -1,12 +1,31 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from db_connect import connection
 from functools import wraps
+from datetime import datetime
 import requests
 import logging
 
 #added comment to test DEMO#
 app = Flask(__name__)
 app.secret_key = '23320398123'  # Required for flash messages
+
+# Asset redirect routes for Squarespace-style paths
+# These map /css/, /js/, /images/, /assets/ to Flask's static folder
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory('static/css', filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('static/js', filename)
+
+@app.route('/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory('static/images', filename)
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    return send_from_directory('static/assets', filename)
 
 # Authentication decorator
 def login_required(f):
@@ -104,32 +123,54 @@ def logout():
 def confirmation_screens():
     return render_template('confirmation-screens.html')
 
+@app.route('/confirmation-screens-2')
+def confirmation_screens_2():
+    return render_template('confirmation-screens-2.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         try:
             email = request.form['email']
-            password = request.form['password']  # We'll use this for future password functionality
+            password = request.form['password']
             
-            # Check if email exists in the database
+            # First, check if email exists in student table
             cursor = connection.cursor()
             cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
             student = cursor.fetchone()
-            cursor.close()
             
             if student:
-                # Email exists, create session
+                # Student found, create session
                 session['user_id'] = student[0]  # StudentID
                 session['user_name'] = student[1]  # Name
                 session['user_email'] = student[2]  # Email
+                session['user_type'] = 'student'
                 session['logged_in'] = True
+                cursor.close()
                 
                 flash('Login successful! Welcome back.', 'success')
                 return redirect(url_for('student_dashboard'))
-            else:
-                # Email doesn't exist
-                flash('Email not found. Please check your email or sign up for an account.', 'error')
-                return render_template('login.html')
+            
+            # If not found in student table, check professor table
+            cursor.execute("SELECT ProfessorID, Name, Email, Department FROM professor WHERE Email = %s AND Password = %s", (email, password))
+            professor = cursor.fetchone()
+            cursor.close()
+            
+            if professor:
+                # Professor found, create session
+                session['professor_id'] = professor[0]  # ProfessorID
+                session['name'] = professor[1]  # Name
+                session['user_email'] = professor[2]  # Email
+                session['department'] = professor[3]  # Department
+                session['user_type'] = 'professor'
+                session['logged_in'] = True
+                
+                flash('Login successful! Welcome, Professor.', 'success')
+                return redirect(url_for('professor_dashboard'))
+            
+            # No match in either table
+            flash('Invalid email or password. Please try again.', 'error')
+            return render_template('login.html')
                 
         except Exception as e:
             flash(f'Login error: {str(e)}', 'error')
@@ -333,6 +374,97 @@ def student_dashboard():
 @app.route('/team')
 def team():
     return render_template('team.html')
+
+# Professor dashboard - View and manage peer evaluations
+@app.route('/professor-dashboard')
+def professor_dashboard():
+    # Check if professor is logged in
+    if 'professor_id' not in session:
+        flash('Please log in to access the professor dashboard.', 'error')
+        return redirect(url_for('login'))
+    
+    try:
+        # Fetch courses assigned to this professor
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM course WHERE ProfessorID = %s", (session['professor_id'],))
+        courses = cursor.fetchall()
+        cursor.close()
+        
+        return render_template('professor-dashboard.html', courses=courses)
+    except Exception as e:
+        flash(f'Error loading courses: {str(e)}', 'error')
+        return render_template('professor-dashboard.html', courses=[])
+
+# Assign peer evaluation - Create new evaluation assignments
+@app.route('/assign-evaluations', methods=['GET', 'POST'])
+def assign_evaluations():
+    # Get course_id from URL parameter or form
+    course_id = request.args.get('course_id') or request.form.get('course_id')
+    print("DEBUG: CourseID from request =", course_id)  # <--- DEBUG
+    
+    # Validate course_id exists
+    if not course_id:
+        flash('Missing course ID.', 'error')
+        return redirect(url_for('professor_dashboard'))
+    
+    # Fetch course details from database
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM course WHERE CourseID = %s", (course_id,))
+    course = cursor.fetchone()
+    cursor.close()
+    
+    # If no course found, show error
+    if not course:
+        print("DEBUG: No course found for CourseID =", course_id)
+        flash('Course not found.', 'error')
+        return redirect(url_for('professor_dashboard'))
+    
+    # Handle form submission
+    if request.method == 'POST':
+        print("DEBUG: POST reached:", request.form)  # <--- DEBUG
+        raw_due_date = request.form.get('due_date')
+        raw_time = request.form.get('time')
+        print("DEBUG: Raw due date from form =", raw_due_date)  # <--- DEBUG
+        print("DEBUG: Raw time from form =", raw_time)  # <--- DEBUG
+        
+        # Convert browser input to yyyy-mm-dd format for MySQL
+        try:
+            if '/' in raw_due_date:
+                formatted_due_date = datetime.strptime(raw_due_date, '%m/%d/%Y').strftime('%Y-%m-%d')
+            else:
+                formatted_due_date = datetime.strptime(raw_due_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+        except Exception as e:
+            print("DEBUG: Date parsing error ->", e)
+            flash('Invalid date format.', 'error')
+            return redirect(request.url)
+        
+        print("DEBUG: Formatted due date =", formatted_due_date)  # <--- DEBUG
+        
+        # Update the database
+        cursor = connection.cursor()
+        cursor.execute("UPDATE course SET EvalDueDate = %s WHERE CourseID = %s", (formatted_due_date, course_id))
+        connection.commit()
+        
+        print("DEBUG: Rows affected =", cursor.rowcount)  # <--- DEBUG
+        cursor.close()
+        
+        flash('Evaluation due date successfully updated!', 'success')
+        
+        # Redirect to static evaluation-analysis page
+        print("DEBUG: Redirecting to evaluation-analysis (static page)")  # <--- DEBUG
+        return redirect(url_for('evaluation_analysis'))
+    
+    # GET request: render the form
+    return render_template('confirmation-screens-1.html', course=course)
+
+# Evaluation analysis - View and analyze evaluation results
+@app.route('/evaluation-analysis')
+def evaluation_analysis():
+    """
+    Static evaluation analysis page — temporarily disabled dynamic database logic.
+    This route should always render the page directly.
+    """
+    return render_template('evaluation-analysis.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
