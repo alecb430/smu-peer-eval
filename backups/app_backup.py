@@ -3,13 +3,11 @@ from db_connect import connection
 from functools import wraps
 from datetime import datetime
 import requests
-import hashlib
 import logging
-from config import Config
 
 #added comment to test DEMO#
 app = Flask(__name__)
-app.secret_key = Config.SECRET_KEY
+app.secret_key = '23320398123'  # Required for flash messages
 
 # Asset redirect routes for Squarespace-style paths
 # These map /css/, /js/, /images/, /assets/ to Flask's static folder
@@ -42,11 +40,10 @@ def login_required(f):
 # Zapier webhook helper function
 def send_to_zapier(evaluation_id):
     """
-    Send evaluation data to Zapier webhook after a peer evaluation is submitted.
-    Uses signature-based authentication for security.
+    Send evaluation data to Zapier webhook after a new record is inserted/updated.
     
     Args:
-        evaluation_id: The PeerEvalID of the evaluation record
+        evaluation_id: The EvaluationID (or PeerEvalID) of the evaluation record
         
     Returns:
         bool: True if successful, False otherwise
@@ -56,11 +53,9 @@ def send_to_zapier(evaluation_id):
         cursor = connection.cursor()
         cursor.execute("""
             SELECT 
-                p.StudentEvaluator,
-                p.CourseID,
                 e1.Email AS evaluator_email,
                 e2.Email AS evaluatee_email,
-                CONCAT(c.CourseCode, '-', c.Semester, '-', c.Year, '-', REPLACE(c.CourseTime, ' ', '')) AS course_id,
+                CONCAT(c.course_code, '-', c.semester, '-', c.year, '-', REPLACE(c.course_time, ' ', '')) AS course_id,
                 p.Contribution,
                 p.Collaboration,
                 p.Communication,
@@ -81,45 +76,35 @@ def send_to_zapier(evaluation_id):
             print(f"ERROR: No evaluation found with PeerEvalID {evaluation_id}")
             return False
         
-        # Extract data from query result
-        student_id = result[0]
-        course_id = result[1]
-        
         # Build the payload dictionary
-        data = {
-            "student_id": student_id,
-            "peer_eval_id": evaluation_id,
-            "course_id": course_id,
-            "event": "peer_evaluation_submitted",
-            "evaluator_email": result[2],
-            "evaluatee_email": result[3],
-            "course_identifier": result[4],
-            "contribution": result[5],
-            "collaboration": result[6],
-            "communication": result[7],
-            "planning": result[8],
-            "inclusivity": result[9],
-            "overall": result[10]
+        payload = {
+            "evaluator_email": result[0],
+            "evaluatee_email": result[1],
+            "course_id": result[2],
+            "contribution": result[3],
+            "collaboration": result[4],
+            "communication": result[5],
+            "planning": result[6],
+            "inclusivity": result[7],
+            "overall": result[8],
+            "webhook_secret": "smu_pe_6f9c1b3e2a6f4f1e"
         }
         
-        # Generate signature for authentication
-        secret = "smu_sched_pe_9f4c8d2b71e54c39"
-        signature = hashlib.sha256(
-            f"{data['student_id']}{data['peer_eval_id']}{secret}".encode()
-        ).hexdigest()
-        data["signature"] = signature
-        
         # Send POST request to Zapier webhook
-        zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/us4sgr4/"
-        response = requests.post(zapier_webhook_url, json=data, timeout=5)
-        response.raise_for_status()
+        webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/ursjm8o/"
+        response = requests.post(webhook_url, json=payload, timeout=30)
         
-        print("✅ Zapier webhook triggered successfully after peer evaluation submission.")
-        print(f"   Student ID: {student_id} | PeerEvalID: {evaluation_id} | CourseID: {course_id}")
-        return True
+        print(f"Zapier response: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            print("Successfully sent evaluation data to Zapier webhook")
+            return True
+        else:
+            print(f"Zapier webhook returned non-200 status: {response.status_code}")
+            return False
             
     except Exception as e:
-        print(f"⚠️ Zapier webhook error: {e}")
+        print(f"Error sending data to Zapier webhook: {str(e)}")
         return False
 
 # Home route
@@ -462,40 +447,6 @@ def assign_evaluations():
         
         print("DEBUG: Rows affected =", cursor.rowcount)  # <--- DEBUG
         cursor.close()
-        
-        # Trigger Zapier webhook to notify all students enrolled in this course
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT s.Email AS StudentEmail
-                FROM student s
-                JOIN enrollment e ON s.StudentID = e.StudentID
-                WHERE e.CourseID = %s
-            """, (course_id,))
-            student_emails = [row['StudentEmail'] for row in cursor.fetchall()]
-            cursor.close()
-            
-            # Capture due_time from form (even if not stored in database)
-            eval_due_time = request.form.get('time') or request.form.get('eval_due_time')
-            
-            # Build the Zapier payload using the new simplified structure
-            data = {
-                "secret_key": "smu_sched_pe_9f4c8d2b71e54c39",
-                "course_id": int(course_id),
-                "due_date": formatted_due_date,
-                "due_time": eval_due_time if eval_due_time else "",
-                "student_emails": student_emails
-            }
-            
-            # Send POST request to Zapier
-            zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/us4sgr4/"
-            response = requests.post(zapier_webhook_url, json=data, timeout=5)
-            response.raise_for_status()
-            
-            print(f"✅ Zapier webhook triggered for course {course_id} — notifying {len(student_emails)} students.")
-            
-        except Exception as e:
-            print(f"⚠️ Zapier webhook error: {e}")
         
         flash('Evaluation due date successfully updated!', 'success')
         
