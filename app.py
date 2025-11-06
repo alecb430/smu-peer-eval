@@ -10,7 +10,8 @@ from config import Config
 
 #added comment to test DEMO#
 app = Flask(__name__)
-app.secret_key = Config.SECRET_KEY
+app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret")
+
 
 # Asset redirect routes for Squarespace-style paths
 # These map /css/, /js/, /images/, /assets/ to Flask's static folder
