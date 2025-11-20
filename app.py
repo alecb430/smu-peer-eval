@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
-from db_connect import connection
+from db_connect import connection, get_connection
 from functools import wraps
 from datetime import datetime
 import requests
 import hashlib
 import logging
 import os
+import csv
+import io
 from config import Config
 
 #added comment to test DEMO#
@@ -516,6 +518,391 @@ def evaluation_analysis():
     This route should always render the page directly.
     """
     return render_template('evaluation-analysis.html')
+
+@app.route('/import-course-roster', methods=['GET', 'POST'])
+def import_course_roster():
+    # Check if professor is logged in
+    if 'professor_id' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        # Get form data
+        course_code = request.form.get('course_code')
+        csv_file = request.files.get('csv_file')
+        
+        # Validate inputs
+        if not course_code:
+            flash('Course code is required.', 'error')
+            return redirect(request.url)
+        
+        if not csv_file or csv_file.filename == '':
+            flash('No file selected.', 'error')
+            return redirect(request.url)
+        
+        try:
+            # Read CSV file content
+            # Decode the file stream to handle encoding properly
+            stream = io.TextIOWrapper(csv_file.stream, encoding='utf-8-sig')  # utf-8-sig handles BOM
+            
+            # Parse CSV using DictReader
+            reader = csv.DictReader(stream)
+            
+            # Get database connection
+            cursor = connection.cursor()
+            
+            # Check if course exists, if not create it
+            cursor.execute("SELECT CourseID FROM course WHERE CourseCode = %s", (course_code,))
+            course_row = cursor.fetchone()
+            
+            if not course_row:
+                # Course doesn't exist, create it
+                cursor.execute(
+                    "INSERT INTO course (CourseCode, ProfessorID) VALUES (%s, %s)",
+                    (course_code, session['professor_id'])
+                )
+                connection.commit()
+                course_id = cursor.lastrowid
+                print(f"Created new course: {course_code} with CourseID: {course_id}")
+            else:
+                course_id = course_row[0]
+                print(f"Found existing course: {course_code} with CourseID: {course_id}")
+            
+            # Process each row in the CSV
+            students_added = 0
+            enrollments_added = 0
+            
+            for row in reader:
+                # Extract data from CSV row
+                # Handle potential column name variations (case-insensitive)
+                student_id = None
+                name = None
+                email = None
+                
+                for key, value in row.items():
+                    key_lower = key.strip().lower()
+                    if 'student' in key_lower and 'id' in key_lower:
+                        student_id = value.strip()
+                    elif key_lower == 'name':
+                        name = value.strip()
+                    elif key_lower == 'email':
+                        email = value.strip()
+                
+                # Validate required fields
+                if not student_id or not name or not email:
+                    print(f"Warning: Skipping row with missing data: {row}")
+                    continue
+                
+                # Check if student exists, if not create them
+                cursor.execute("SELECT StudentID FROM student WHERE StudentID = %s", (student_id,))
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO student (StudentID, Name, Email) VALUES (%s, %s, %s)",
+                        (student_id, name, email)
+                    )
+                    students_added += 1
+                    print(f"Added new student: {name} (ID: {student_id})")
+                else:
+                    print(f"Student already exists: {name} (ID: {student_id})")
+                
+                # Create enrollment record (INSERT IGNORE to avoid duplicates)
+                cursor.execute(
+                    "INSERT IGNORE INTO enrollment (CourseID, StudentID) VALUES (%s, %s)",
+                    (course_id, student_id)
+                )
+                if cursor.rowcount > 0:
+                    enrollments_added += 1
+                    print(f"Enrolled student {student_id} in course {course_code}")
+            
+            # Commit all changes
+            connection.commit()
+            cursor.close()
+            
+            flash(f'Roster imported successfully! Added {students_added} new students and {enrollments_added} enrollments.', 'success')
+            print(f"Import complete: {students_added} students added, {enrollments_added} enrollments created")
+            
+            # Store course_id in session for groups-in-your-class page
+            session['selected_course_id'] = course_id
+            
+            return redirect(url_for('creating_groups', course_id=course_id))
+            
+        except csv.Error as e:
+            flash(f'Error reading CSV file: {str(e)}', 'error')
+            print(f"CSV parsing error: {e}")
+            return redirect(request.url)
+        except Exception as e:
+            # Rollback on any error
+            connection.rollback()
+            flash(f'Error processing file: {str(e)}', 'error')
+            print(f"Error processing roster: {e}")
+            import traceback
+            traceback.print_exc()
+            return redirect(request.url)
+    
+    # GET request: render the form
+    return render_template('import-course-roster.html')
+
+@app.route('/creating-groups/<int:course_id>', methods=['GET', 'POST'])
+def creating_groups(course_id):
+    # Check if professor is logged in
+    if 'professor_id' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
+    
+    # Handle POST form submission
+    if request.method == 'POST':
+        conn = None
+        cursor = None
+        try:
+            # Get form data
+            selected_group_name = request.form.get('group_select')
+            selected_students = request.form.getlist('student_select')
+            
+            if not selected_group_name:
+                flash('Please select a group.', 'error')
+                return redirect(url_for('creating_groups', course_id=course_id))
+            
+            if not selected_students:
+                flash('Please select at least one student.', 'error')
+                return redirect(url_for('creating_groups', course_id=course_id))
+            
+            # Get database connection
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
+            
+            # Get CourseCode to format group name
+            cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
+            course_result = cursor.fetchone()
+            course_code = course_result['CourseCode'] if course_result and course_result.get('CourseCode') else None
+            
+            if not course_code:
+                course_code = "UnknownCourse"
+            
+            # Extract group number from selected_group_name (e.g., "Group 1" -> "1")
+            import re
+            match = re.search(r'(\d+)', selected_group_name)
+            group_number = match.group(1) if match else None
+            
+            if not group_number:
+                flash('Could not determine group number.', 'error')
+                return redirect(url_for('creating_groups', course_id=course_id))
+            
+            # Format group name as {CourseCode}-Group{number}
+            formatted_group_name = f"{course_code}-Group{group_number}"
+            
+            # 1️⃣ Generate a unique GroupID
+            cursor.execute("SELECT MAX(GroupID) AS MaxGroupID FROM studentgroup")
+            result = cursor.fetchone()
+            next_group_id = (result['MaxGroupID'] or 999) + 1  # start from 1000 if none exist
+            
+            # 2️⃣ Check if group already exists for this course
+            cursor.execute("SELECT GroupID FROM studentgroup WHERE CourseID = %s AND GroupName = %s", 
+                         (course_id, formatted_group_name))
+            existing_group = cursor.fetchone()
+            
+            if existing_group:
+                group_id = existing_group['GroupID']
+            else:
+                cursor.execute("INSERT INTO studentgroup (GroupID, CourseID, GroupName) VALUES (%s, %s, %s)", 
+                             (next_group_id, course_id, formatted_group_name))
+                group_id = next_group_id
+            
+            # 3️⃣ Add students to groupmembers (prevent duplicates)
+            students_added = 0
+            for student_id in selected_students:
+                if student_id:  # Skip empty values
+                    cursor.execute("SELECT * FROM groupmembers WHERE GroupID = %s AND StudentID = %s", 
+                                 (group_id, student_id))
+                    if not cursor.fetchone():
+                        cursor.execute("INSERT INTO groupmembers (GroupID, StudentID) VALUES (%s, %s)", 
+                                     (group_id, student_id))
+                        students_added += 1
+            
+            conn.commit()
+            
+            # Store course_id in session for groups-in-your-class page
+            session['selected_course_id'] = course_id
+            
+            # Prepare success message
+            success_message = f"✅ {formatted_group_name} successfully created!"
+            
+            # Re-fetch course and students for template rendering
+            cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
+            course = cursor.fetchone()
+            
+            cursor.execute("""
+                SELECT s.StudentID, s.Name
+                FROM student s
+                JOIN enrollment e ON s.StudentID = e.StudentID
+                WHERE e.CourseID = %s
+                ORDER BY s.Name ASC
+            """, (course_id,))
+            students = cursor.fetchall()
+            
+            return render_template('creating-groups.html', 
+                                 course=course, 
+                                 students=students, 
+                                 course_id=course_id,
+                                 success_message=success_message)
+            
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            print(f"Error processing form submission: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Re-fetch course and students for template rendering
+            try:
+                if not conn:
+                    conn = get_connection()
+                if not cursor:
+                    cursor = conn.cursor(dictionary=True)
+                
+                cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
+                course = cursor.fetchone()
+                
+                cursor.execute("""
+                    SELECT s.StudentID, s.Name
+                    FROM student s
+                    JOIN enrollment e ON s.StudentID = e.StudentID
+                    WHERE e.CourseID = %s
+                    ORDER BY s.Name ASC
+                """, (course_id,))
+                students = cursor.fetchall()
+                
+                return render_template('creating-groups.html', 
+                                     course=course, 
+                                     students=students, 
+                                     course_id=course_id,
+                                     error_message=f'Error creating group: {str(e)}')
+            except Exception as e2:
+                print(f"Error loading template after error: {e2}")
+                return redirect(url_for('creating_groups', course_id=course_id))
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+    
+    # Handle GET request - display the form
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Fetch course info
+        cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
+        course = cursor.fetchone()
+        
+        if not course:
+            flash('Course not found.', 'error')
+            return redirect(url_for('professor_dashboard'))
+        
+        # Fetch all enrolled students
+        cursor.execute("""
+            SELECT s.StudentID, s.Name
+            FROM student s
+            JOIN enrollment e ON s.StudentID = e.StudentID
+            WHERE e.CourseID = %s
+            ORDER BY s.Name ASC
+        """, (course_id,))
+        students = cursor.fetchall()
+        
+        return render_template('creating-groups.html', course=course, students=students, course_id=course_id)
+        
+    except Exception as e:
+        print(f"Error loading creating-groups page: {e}")
+        flash(f'Error loading course data: {str(e)}', 'error')
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for('professor_dashboard'))
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/groups-in-your-class')
+def groups_in_your_class():
+    # Check if professor is logged in
+    if 'professor_id' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
+    
+    conn = None
+    cursor = None
+    try:
+        professor_id = session.get('professor_id')
+        # Get course_id from session or query parameters
+        course_id = session.get('selected_course_id') or request.args.get('course_id')
+        
+        if not course_id:
+            flash('No course selected. Please import a course roster or create groups first.', 'error')
+            return redirect(url_for('professor_dashboard'))
+        
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get selected course info
+        cursor.execute("""
+            SELECT CourseID, CourseCode
+            FROM course
+            WHERE CourseID = %s AND ProfessorID = %s
+        """, (course_id, professor_id))
+        course = cursor.fetchone()
+        
+        if not course:
+            flash('Course not found or not assigned to this professor.', 'error')
+            return redirect(url_for('professor_dashboard'))
+        
+        # Fetch all groups for this course
+        cursor.execute("""
+            SELECT GroupID, GroupName
+            FROM studentgroup
+            WHERE CourseID = %s
+            ORDER BY GroupName ASC
+        """, (course_id,))
+        groups = cursor.fetchall()
+        
+        all_groups = []
+        for group in groups:
+            group_id = group['GroupID']
+            
+            # Get students in each group
+            cursor.execute("""
+                SELECT s.StudentID, s.Name
+                FROM groupmembers gm
+                JOIN student s ON gm.StudentID = s.StudentID
+                WHERE gm.GroupID = %s
+                ORDER BY s.Name ASC
+            """, (group_id,))
+            students = cursor.fetchall()
+            
+            all_groups.append({
+                'GroupName': group['GroupName'],
+                'GroupID': group_id,
+                'Students': students
+            })
+        
+        return render_template(
+            'groups-in-your-class.html',
+            course=course,
+            all_groups=all_groups
+        )
+        
+    except Exception as e:
+        print(f"Error loading groups-in-your-class: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading groups: {str(e)}', 'error')
+        return render_template('groups-in-your-class.html', course=None, all_groups=[])
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():

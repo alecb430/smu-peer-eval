@@ -28,7 +28,8 @@
 <script>document.documentElement.classList.add('wf-loading')</script>
 <style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; }</style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pontano+Sans:ital,wght@0,400;0,700"><script type="text/javascript"  defer="true" nomodule="nomodule" src="{{ url_for('static', filename='js/legacy.js') }}"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pontano+Sans:ital,wght@0,400;0,700">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"><script type="text/javascript"  defer="true" nomodule="nomodule" src="{{ url_for('static', filename='js/legacy.js') }}"></script>
 <script type="text/javascript"  defer="true" src="{{ url_for('static', filename='js/modern.js') }}"></script>
 <script type="text/javascript">SQUARESPACE_ROLLUPS = {};</script>
 <script>(function(rollups, name) { if (!rollups[name]) { rollups[name] = {}; } rollups[name].js = ["js/extract-css-runtime-af6a9ed1dc64f5d8-min.en-us.js"]; })(SQUARESPACE_ROLLUPS, 'squarespace-extract_css_runtime');</script>
@@ -101,6 +102,35 @@
         font-style: italic;
         margin-top: 40px;
         font-size: 1.2rem;
+      }
+      
+      /* Import Course Roster Button - SMU gold styling */
+      .import-roster-btn {
+        background-color: transparent;
+        border: 2px solid #8C734B;
+        color: #8C734B;
+        font-family: 'Libre Baskerville', serif;
+        font-weight: 400;
+        padding: 12px 24px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        border-radius: 4px;
+        margin-top: 30px;
+        text-align: center;
+      }
+      
+      .import-roster-btn:hover {
+        background-color: #8C734B;
+        color: white;
+        border-color: #8C734B;
+      }
+      
+      .import-roster-btn-container {
+        text-align: center;
+        margin: 30px 0;
       }
     </style>
   </head>
@@ -2385,6 +2415,12 @@
   <p>No active courses found.</p>
 </div>
 {% endif %}
+
+<div class="import-roster-btn-container">
+  <a href="{{ url_for('import_course_roster') }}" class="import-roster-btn">
+    Import a Course Roster
+  </a>
+</div>
 
 
 
