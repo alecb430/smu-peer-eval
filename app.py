@@ -148,54 +148,146 @@ def confirmation_screens_2():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    print("=" * 60)
+    print("LOGIN ROUTE: Starting login process")
+    print(f"Request method: {request.method}")
+    
+    # Clear session at the beginning to avoid leftover data
+    print("LOGIN: Clearing session to remove any leftover data")
     session.clear()
+    print(f"LOGIN: Session after clear: {dict(session)}")
+    
     if request.method == 'POST':
+        cursor = None
         try:
-            email = request.form['email']
-            password = request.form['password']
+            # 1. Print incoming POST data
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '').strip()
+            print(f"LOGIN: Received POST data - Email: '{email}', Password: {'*' * len(password) if password else '(empty)'}")
             
-            # First, check if email exists in student table
+            if not email:
+                print("LOGIN: ERROR - Email is empty")
+                flash('Email is required.', 'error')
+                return render_template('login.html')
+            
+            # 2. Check student table first
+            print("LOGIN: Querying student table...")
             cursor = connection.cursor()
-            cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
+            cursor.execute("SELECT StudentID, FirstName, LastName, Email FROM student WHERE Email = %s", (email,))
             student = cursor.fetchone()
+            print(f"LOGIN: Student query result: {student}")
             
             if student:
-                # Student found, create session
-                session['user_id'] = student[0]  # StudentID
-                session['user_name'] = student[1]  # Name
-                session['user_email'] = student[2]  # Email
+                student_id = student[0]
+                first_name = student[1] or ''
+                last_name = student[2] or ''
+                student_email = student[3]
+                # Combine first and last name
+                full_name = f"{first_name} {last_name}".strip()
+                print(f"LOGIN: Student found - StudentID: {student_id}, FirstName: '{first_name}', LastName: '{last_name}', FullName: '{full_name}', Email: {student_email}")
+                
+                # 3. Set session variables and print changes
+                print("LOGIN: Setting session variables for student...")
+                session['user_id'] = student_id
+                print(f"LOGIN: Session['user_id'] = {session.get('user_id')}")
+                session['user_name'] = full_name
+                print(f"LOGIN: Session['user_name'] = {session.get('user_name')}")
+                session['user_email'] = student_email
+                print(f"LOGIN: Session['user_email'] = {session.get('user_email')}")
                 session['user_type'] = 'student'
+                print(f"LOGIN: Session['user_type'] = {session.get('user_type')}")
                 session['logged_in'] = True
+                print(f"LOGIN: Session['logged_in'] = {session.get('logged_in')}")
+                print(f"LOGIN: Full session after student login: {dict(session)}")
+                
                 cursor.close()
+                cursor = None
+                
+                # 6. Print confirmation after successful login
+                print("=" * 60)
+                print("LOGIN SUCCESS: Student login confirmed")
+                print(f"  User Type: {session.get('user_type')}")
+                print(f"  User ID: {session.get('user_id')}")
+                print(f"  User Email: {session.get('user_email')}")
+                print(f"  User Name: {session.get('user_name')}")
+                print("=" * 60)
                 
                 flash('Login successful! Welcome back.', 'success')
                 return redirect(url_for('student_dashboard'))
             
-            # If not found in student table, check professor table
-            cursor.execute("SELECT ProfessorID, Name, Email, Department FROM professor WHERE Email = %s AND Password = %s", (email, password))
+            # 4. Check professor table
+            print("LOGIN: Student not found, querying professor table...")
+            cursor.execute("SELECT ProfessorID, Name, Email FROM professor WHERE Email = %s AND Password = %s", (email, password))
             professor = cursor.fetchone()
-            cursor.close()
+            print(f"LOGIN: Professor query result: {professor}")
             
             if professor:
-                # Professor found, create session
-                session['professor_id'] = professor[0]  # ProfessorID
-                session['name'] = professor[1]  # Name
-                session['user_email'] = professor[2]  # Email
-                session['department'] = professor[3]  # Department
+                professor_id = professor[0]
+                professor_name = professor[1] or ''
+                professor_email = professor[2]
+                print(f"LOGIN: Professor found - ProfessorID: {professor_id}, Name: '{professor_name}', Email: {professor_email}")
+                
+                # 3. Set session variables and print changes
+                print("LOGIN: Setting session variables for professor...")
+                session['professor_id'] = professor_id
+                print(f"LOGIN: Session['professor_id'] = {session.get('professor_id')}")
+                session['name'] = professor_name
+                print(f"LOGIN: Session['name'] = {session.get('name')}")
+                session['user_email'] = professor_email
+                print(f"LOGIN: Session['user_email'] = {session.get('user_email')}")
                 session['user_type'] = 'professor'
+                print(f"LOGIN: Session['user_type'] = {session.get('user_type')}")
                 session['logged_in'] = True
+                print(f"LOGIN: Session['logged_in'] = {session.get('logged_in')}")
+                print(f"LOGIN: Full session after professor login: {dict(session)}")
+                
+                cursor.close()
+                cursor = None
+                
+                # 6. Print confirmation after successful login
+                print("=" * 60)
+                print("LOGIN SUCCESS: Professor login confirmed")
+                print(f"  User Type: {session.get('user_type')}")
+                print(f"  Professor ID: {session.get('professor_id')}")
+                print(f"  User Email: {session.get('user_email')}")
+                print(f"  Name: {session.get('name')}")
+                print("=" * 60)
                 
                 flash('Login successful! Welcome, Professor.', 'success')
                 return redirect(url_for('professor_dashboard'))
             
-            # No match in either table
+            # Login failed - no match found
+            print("LOGIN: ERROR - No match found in student or professor tables")
+            print(f"LOGIN: Attempted email: '{email}'")
+            cursor.close()
+            cursor = None
+            
             flash('Invalid email or password. Please try again.', 'error')
             return render_template('login.html')
                 
         except Exception as e:
+            # 9. Catch errors, print with traceback, and flash message
+            print("=" * 60)
+            print("LOGIN: EXCEPTION CAUGHT")
+            print(f"LOGIN: Error type: {type(e).__name__}")
+            print(f"LOGIN: Error message: {str(e)}")
+            import traceback
+            print("LOGIN: Full traceback:")
+            traceback.print_exc()
+            print("=" * 60)
+            
+            # 8. Ensure cursor is closed even on error
+            if cursor:
+                try:
+                    cursor.close()
+                except:
+                    pass
+            
             flash(f'Login error: {str(e)}', 'error')
             return render_template('login.html')
     
+    # GET request - show login form
+    print("LOGIN: GET request - rendering login form")
     return render_template('login.html')
 
 @app.route('/get-started', methods=['GET', 'POST'])
