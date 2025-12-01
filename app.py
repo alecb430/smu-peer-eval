@@ -173,24 +173,21 @@ def login():
             # 2. Check student table first
             print("LOGIN: Querying student table...")
             cursor = connection.cursor()
-            cursor.execute("SELECT StudentID, FirstName, LastName, Email FROM student WHERE Email = %s", (email,))
+            cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
             student = cursor.fetchone()
             print(f"LOGIN: Student query result: {student}")
             
             if student:
                 student_id = student[0]
-                first_name = student[1] or ''
-                last_name = student[2] or ''
-                student_email = student[3]
-                # Combine first and last name
-                full_name = f"{first_name} {last_name}".strip()
-                print(f"LOGIN: Student found - StudentID: {student_id}, FirstName: '{first_name}', LastName: '{last_name}', FullName: '{full_name}', Email: {student_email}")
+                student_name = student[1] or ''
+                student_email = student[2]
+                print(f"LOGIN: Student found - StudentID: {student_id}, Name: '{student_name}', Email: {student_email}")
                 
                 # 3. Set session variables and print changes
                 print("LOGIN: Setting session variables for student...")
                 session['user_id'] = student_id
                 print(f"LOGIN: Session['user_id'] = {session.get('user_id')}")
-                session['user_name'] = full_name
+                session['user_name'] = student_name
                 print(f"LOGIN: Session['user_name'] = {session.get('user_name')}")
                 session['user_email'] = student_email
                 print(f"LOGIN: Session['user_email'] = {session.get('user_email')}")
