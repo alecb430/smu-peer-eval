@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
-from db_connect import connection, get_connection
+from db_connect import connection, get_connection, ensure_connection, get_valid_cursor
 from functools import wraps
 from datetime import datetime
 import requests
@@ -9,6 +9,7 @@ import os
 import csv
 import io
 from config import Config
+from mysql.connector import OperationalError
 
 #added comment to test DEMO#
 app = Flask(__name__)
@@ -159,6 +160,7 @@ def login():
     
     if request.method == 'POST':
         cursor = None
+        db_conn = None
         try:
             # 1. Print incoming POST data
             email = request.form.get('email', '').strip()
@@ -170,12 +172,50 @@ def login():
                 flash('Email is required.', 'error')
                 return render_template('login.html')
             
-            # 2. Check student table first
+            # 2. Check student table first - with connection validation and retry
             print("LOGIN: Querying student table...")
-            cursor = connection.cursor()
-            cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
-            student = cursor.fetchone()
-            print(f"LOGIN: Student query result: {student}")
+            student = None
+            retry_count = 0
+            max_retries = 1
+            
+            while retry_count <= max_retries:
+                try:
+                    # Validate and get fresh connection before creating cursor
+                    print(f"LOGIN: Validating connection (attempt {retry_count + 1})...")
+                    db_conn = ensure_connection(None)  # Always get fresh connection
+                    cursor = db_conn.cursor()
+                    print("LOGIN: Connection validated, cursor created")
+                    
+                    cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
+                    student = cursor.fetchone()
+                    print(f"LOGIN: Student query result: {student}")
+                    break  # Success, exit retry loop
+                    
+                except OperationalError as op_err:
+                    print(f"LOGIN: OperationalError on student query (attempt {retry_count + 1}): {str(op_err)}")
+                    if cursor:
+                        try:
+                            cursor.close()
+                        except:
+                            pass
+                    cursor = None
+                    db_conn = None
+                    
+                    if retry_count < max_retries:
+                        retry_count += 1
+                        print(f"LOGIN: Retrying student query (attempt {retry_count + 1})...")
+                        continue
+                    else:
+                        print("LOGIN: Max retries reached for student query, re-raising error")
+                        raise
+                except Exception as query_err:
+                    print(f"LOGIN: Unexpected error on student query: {type(query_err).__name__}: {str(query_err)}")
+                    if cursor:
+                        try:
+                            cursor.close()
+                        except:
+                            pass
+                    raise
             
             if student:
                 student_id = student[0]
@@ -197,8 +237,15 @@ def login():
                 print(f"LOGIN: Session['logged_in'] = {session.get('logged_in')}")
                 print(f"LOGIN: Full session after student login: {dict(session)}")
                 
-                cursor.close()
+                if cursor:
+                    cursor.close()
+                if db_conn:
+                    try:
+                        db_conn.close()
+                    except:
+                        pass
                 cursor = None
+                db_conn = None
                 
                 # 6. Print confirmation after successful login
                 print("=" * 60)
@@ -212,11 +259,60 @@ def login():
                 flash('Login successful! Welcome back.', 'success')
                 return redirect(url_for('student_dashboard'))
             
-            # 4. Check professor table
+            # 4. Check professor table - with connection validation and retry
             print("LOGIN: Student not found, querying professor table...")
-            cursor.execute("SELECT ProfessorID, Name, Email FROM professor WHERE Email = %s AND Password = %s", (email, password))
-            professor = cursor.fetchone()
-            print(f"LOGIN: Professor query result: {professor}")
+            professor = None
+            retry_count = 0
+            
+            while retry_count <= max_retries:
+                try:
+                    # Validate and get fresh connection before creating cursor
+                    print(f"LOGIN: Validating connection for professor query (attempt {retry_count + 1})...")
+                    if cursor:
+                        try:
+                            cursor.close()
+                        except:
+                            pass
+                    if db_conn:
+                        try:
+                            db_conn.close()
+                        except:
+                            pass
+                    
+                    db_conn = ensure_connection(None)  # Always get fresh connection
+                    cursor = db_conn.cursor()
+                    print("LOGIN: Connection validated for professor query, cursor created")
+                    
+                    cursor.execute("SELECT ProfessorID, Name, Email FROM professor WHERE Email = %s AND Password = %s", (email, password))
+                    professor = cursor.fetchone()
+                    print(f"LOGIN: Professor query result: {professor}")
+                    break  # Success, exit retry loop
+                    
+                except OperationalError as op_err:
+                    print(f"LOGIN: OperationalError on professor query (attempt {retry_count + 1}): {str(op_err)}")
+                    if cursor:
+                        try:
+                            cursor.close()
+                        except:
+                            pass
+                    cursor = None
+                    db_conn = None
+                    
+                    if retry_count < max_retries:
+                        retry_count += 1
+                        print(f"LOGIN: Retrying professor query (attempt {retry_count + 1})...")
+                        continue
+                    else:
+                        print("LOGIN: Max retries reached for professor query, re-raising error")
+                        raise
+                except Exception as query_err:
+                    print(f"LOGIN: Unexpected error on professor query: {type(query_err).__name__}: {str(query_err)}")
+                    if cursor:
+                        try:
+                            cursor.close()
+                        except:
+                            pass
+                    raise
             
             if professor:
                 professor_id = professor[0]
@@ -238,8 +334,15 @@ def login():
                 print(f"LOGIN: Session['logged_in'] = {session.get('logged_in')}")
                 print(f"LOGIN: Full session after professor login: {dict(session)}")
                 
-                cursor.close()
+                if cursor:
+                    cursor.close()
+                if db_conn:
+                    try:
+                        db_conn.close()
+                    except:
+                        pass
                 cursor = None
+                db_conn = None
                 
                 # 6. Print confirmation after successful login
                 print("=" * 60)
@@ -256,8 +359,15 @@ def login():
             # Login failed - no match found
             print("LOGIN: ERROR - No match found in student or professor tables")
             print(f"LOGIN: Attempted email: '{email}'")
-            cursor.close()
+            if cursor:
+                cursor.close()
+            if db_conn:
+                try:
+                    db_conn.close()
+                except:
+                    pass
             cursor = None
+            db_conn = None
             
             flash('Invalid email or password. Please try again.', 'error')
             return render_template('login.html')
@@ -273,10 +383,15 @@ def login():
             traceback.print_exc()
             print("=" * 60)
             
-            # 8. Ensure cursor is closed even on error
+            # 8. Ensure cursor and connection are closed even on error
             if cursor:
                 try:
                     cursor.close()
+                except:
+                    pass
+            if db_conn:
+                try:
+                    db_conn.close()
                 except:
                     pass
             
