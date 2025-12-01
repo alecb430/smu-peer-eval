@@ -14,17 +14,6 @@ from config import Config
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret")
 
-# Configure session cookies for production (Render/HTTPS)
-# These settings ensure sessions persist correctly on Render
-# SESSION_COOKIE_SECURE should be True when running on HTTPS (Render production)
-# Check if we're in production by looking for RENDER environment variable or PORT
-is_production = os.environ.get('RENDER') == 'true' or os.environ.get('FLASK_ENV') == 'production' or os.environ.get('PORT')
-app.config['SESSION_COOKIE_SECURE'] = bool(is_production)
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-# Set session to persist for 7 days
-app.config['PERMANENT_SESSION_LIFETIME'] = 604800  # 7 days in seconds
-
 
 # Asset redirect routes for Squarespace-style paths
 # These map /css/, /js/, /images/, /assets/ to Flask's static folder
@@ -159,14 +148,7 @@ def confirmation_screens_2():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Check if user is already logged in - prevent redirect loops
-    if session.get('logged_in'):
-        user_type = session.get('user_type')
-        if user_type == 'student':
-            return redirect(url_for('student_dashboard'))
-        elif user_type == 'professor':
-            return redirect(url_for('professor_dashboard'))
-    
+    session.clear()
     if request.method == 'POST':
         try:
             email = request.form['email']
@@ -179,14 +161,11 @@ def login():
             
             if student:
                 # Student found, create session
-                # Note: Student login doesn't require password verification in current schema
-                # If you add password field to student table, add: AND Password = %s
                 session['user_id'] = student[0]  # StudentID
                 session['user_name'] = student[1]  # Name
                 session['user_email'] = student[2]  # Email
                 session['user_type'] = 'student'
                 session['logged_in'] = True
-                session.permanent = True  # Make session persistent
                 cursor.close()
                 
                 flash('Login successful! Welcome back.', 'success')
@@ -205,7 +184,6 @@ def login():
                 session['department'] = professor[3]  # Department
                 session['user_type'] = 'professor'
                 session['logged_in'] = True
-                session.permanent = True  # Make session persistent
                 
                 flash('Login successful! Welcome, Professor.', 'success')
                 return redirect(url_for('professor_dashboard'))
@@ -420,8 +398,8 @@ def team():
 # Professor dashboard - View and manage peer evaluations
 @app.route('/professor-dashboard')
 def professor_dashboard():
-    # Check if professor is logged in - use consistent check with login_required
-    if not session.get('logged_in') or session.get('user_type') != 'professor' or 'professor_id' not in session:
+    # Check if professor is logged in
+    if 'professor_id' not in session:
         flash('Please log in to access the professor dashboard.', 'error')
         return redirect(url_for('login'))
     
@@ -544,8 +522,8 @@ def evaluation_analysis():
 
 @app.route('/import-course-roster', methods=['GET', 'POST'])
 def import_course_roster():
-    # Check if professor is logged in - use consistent check
-    if not session.get('logged_in') or session.get('user_type') != 'professor' or 'professor_id' not in session:
+    # Check if professor is logged in
+    if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
@@ -667,8 +645,8 @@ def import_course_roster():
 
 @app.route('/creating-groups/<int:course_id>', methods=['GET', 'POST'])
 def creating_groups(course_id):
-    # Check if professor is logged in - use consistent check
-    if not session.get('logged_in') or session.get('user_type') != 'professor' or 'professor_id' not in session:
+    # Check if professor is logged in
+    if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
@@ -849,8 +827,8 @@ def creating_groups(course_id):
 
 @app.route('/groups-in-your-class')
 def groups_in_your_class():
-    # Check if professor is logged in - use consistent check
-    if not session.get('logged_in') or session.get('user_type') != 'professor' or 'professor_id' not in session:
+    # Check if professor is logged in
+    if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
