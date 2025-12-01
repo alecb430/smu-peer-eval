@@ -56,9 +56,14 @@ def send_to_zapier(evaluation_id):
     Returns:
         bool: True if successful, False otherwise
     """
+    cursor = None
+    db_conn = None
     try:
         # Query the evaluation data with all related information
-        cursor = connection.cursor()
+        # Validate connection before querying
+        db_conn = ensure_connection(None)
+        cursor = db_conn.cursor()
+        
         cursor.execute("""
             SELECT 
                 p.StudentEvaluator,
@@ -81,6 +86,13 @@ def send_to_zapier(evaluation_id):
         
         result = cursor.fetchone()
         cursor.close()
+        cursor = None
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        db_conn = None
         
         if not result:
             print(f"ERROR: No evaluation found with PeerEvalID {evaluation_id}")
@@ -125,6 +137,16 @@ def send_to_zapier(evaluation_id):
             
     except Exception as e:
         print(f"⚠️ Zapier webhook error: {e}")
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
         return False
 
 # Home route
@@ -447,6 +469,8 @@ def peer_evaluation(peer_eval_id):
     
     # POST: Submit evaluation
     if request.method == 'POST':
+        cursor = None
+        db_conn = None
         try:
             print(f"POST: Submitting evaluation for PeerEvalID={peer_eval_id}")
             
@@ -479,7 +503,10 @@ def peer_evaluation(peer_eval_id):
             print(f"VALIDATION PASSED: All fields valid for PeerEvalID={peer_eval_id}")
             
             # Simple UPDATE by PeerEvalID
-            cursor = connection.cursor()
+            # Validate connection before querying
+            db_conn = ensure_connection(None)
+            cursor = db_conn.cursor()
+            
             cursor.execute("""
                 UPDATE peerevaluation
                 SET Contribution = %s, Collaboration = %s, Communication = %s,
@@ -491,8 +518,15 @@ def peer_evaluation(peer_eval_id):
             rows_updated = cursor.rowcount
             print(f"ROWS UPDATED: {rows_updated}")
             
-            connection.commit()
+            db_conn.commit()
             cursor.close()
+            cursor = None
+            if db_conn:
+                try:
+                    db_conn.close()
+                except:
+                    pass
+            db_conn = None
             
             # Send to Zapier
             zapier_success = send_to_zapier(peer_eval_id)
@@ -506,20 +540,37 @@ def peer_evaluation(peer_eval_id):
             print(f"POST ERROR: {e}")
             import traceback
             traceback.print_exc()
+            
+            if cursor:
+                try:
+                    cursor.close()
+                except:
+                    pass
+            if db_conn:
+                try:
+                    db_conn.close()
+                except:
+                    pass
+            
             flash('There was a problem saving your evaluation. Please try again.', 'error')
             return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
     
     # GET: Load evaluation form
+    cursor = None
+    db_conn = None
     try:
         print(f"GET: Loading form for PeerEvalID={peer_eval_id}")
-        cursor = connection.cursor()
+        # Validate connection before querying
+        db_conn = ensure_connection(None)
+        cursor = db_conn.cursor()
+        
         cursor.execute("""
             SELECT
                 s.Name AS EvaluateeName,
                 c.CourseCode,
                 c.CourseName,
                 c.CourseTime,
-                p.EvalDueDate
+                c.EvalDueDate
             FROM peerevaluation p
             JOIN student s ON p.StudentEvaluatee = s.StudentID
             JOIN course c ON p.CourseID = c.CourseID
@@ -528,6 +579,13 @@ def peer_evaluation(peer_eval_id):
         
         eval_data = cursor.fetchone()
         cursor.close()
+        cursor = None
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        db_conn = None
         
         if not eval_data:
             print(f"GET ERROR: No data found for PeerEvalID={peer_eval_id}")
@@ -550,18 +608,36 @@ def peer_evaluation(peer_eval_id):
         print(f"GET ERROR: {e}")
         import traceback
         traceback.print_exc()
+        
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        
         flash('Error loading evaluation form.', 'error')
         return redirect(url_for('student_dashboard'))
 
 @app.route('/student-dashboard')
 @login_required
 def student_dashboard():
+    cursor = None
+    db_conn = None
     try:
         # Get the logged-in student's ID from session
         student_id = session.get('user_id')
         
         # Query evaluations for the logged-in student (Sprint 1: Show ALL assignments)
-        cursor = connection.cursor()
+        # Validate connection before querying
+        print(f"DASHBOARD: Fetching evaluations for student {student_id}")
+        db_conn = ensure_connection(None)
+        cursor = db_conn.cursor()
+        
         cursor.execute("""
             SELECT
                 p.PeerEvalID,
@@ -569,18 +645,23 @@ def student_dashboard():
                 c.CourseName,
                 c.CourseTime,
                 s.Name AS EvaluateeName,
-                p.EvalDueDate
+                c.EvalDueDate
             FROM peerevaluation p
             JOIN student s ON p.StudentEvaluatee = s.StudentID
             JOIN course c ON p.CourseID = c.CourseID
             WHERE p.StudentEvaluator = %s
-            ORDER BY COALESCE(p.EvalDueDate, '2999-12-31') ASC
+            ORDER BY COALESCE(c.EvalDueDate, '2999-12-31') ASC
         """, (student_id,))
-        
-        print(f"DASHBOARD: Fetching evaluations for student {student_id}")
         
         evaluations = cursor.fetchall()
         cursor.close()
+        cursor = None
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        db_conn = None
         
         print(f"DASHBOARD: Found {len(evaluations)} evaluations")
         for i, eval in enumerate(evaluations):
@@ -589,6 +670,21 @@ def student_dashboard():
         return render_template('student-dashboard.html', evaluations=evaluations)
         
     except Exception as e:
+        print(f"DASHBOARD ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        
         flash(f'Error loading dashboard: {str(e)}', 'error')
         return render_template('student-dashboard.html', 
                              evaluations=[],
