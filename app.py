@@ -656,6 +656,31 @@ def student_dashboard():
         evaluations = cursor.fetchall()
         cursor.close()
         cursor = None
+        
+        # Query enrolled courses for the logged-in student
+        print(f"DASHBOARD: Fetching enrolled courses for student {student_id}")
+        db_conn = ensure_connection(None)
+        cursor = db_conn.cursor(dictionary=True)
+        
+        cursor.execute("""
+            SELECT
+                c.CourseName,
+                c.CourseCode,
+                c.Semester,
+                c.Year,
+                c.CourseTime,
+                c.EvalDueDate,
+                c.EvalScheduleDate
+            FROM student s
+            JOIN enrollment e ON s.StudentID = e.StudentID
+            JOIN course c ON e.CourseID = c.CourseID
+            WHERE s.StudentID = %s
+            ORDER BY c.CourseCode ASC
+        """, (student_id,))
+        
+        courses = cursor.fetchall()
+        cursor.close()
+        cursor = None
         if db_conn:
             try:
                 db_conn.close()
@@ -666,8 +691,9 @@ def student_dashboard():
         print(f"DASHBOARD: Found {len(evaluations)} evaluations")
         for i, eval in enumerate(evaluations):
             print(f"  [{i}] PeerEvalID={eval[0]}, {eval[1]} - {eval[2]}, Evaluatee={eval[4]}")
+        print(f"DASHBOARD: Found {len(courses)} enrolled courses")
         
-        return render_template('student-dashboard.html', evaluations=evaluations)
+        return render_template('student-dashboard.html', evaluations=evaluations, courses=courses)
         
     except Exception as e:
         print(f"DASHBOARD ERROR: {e}")
@@ -688,6 +714,7 @@ def student_dashboard():
         flash(f'Error loading dashboard: {str(e)}', 'error')
         return render_template('student-dashboard.html', 
                              evaluations=[],
+                             courses=[],
                              student_name=session.get('user_name'),
                              evaluation_count=0)
 
