@@ -1229,6 +1229,133 @@ def creating_groups(course_id):
             
             conn.commit()
             
+            print("=" * 80)
+            print(f"CREATE GROUP: Group '{formatted_group_name}' created successfully")
+            print(f"CREATE GROUP: Preparing Zapier webhook for course {course_id}")
+            print("=" * 80)
+            
+            # ========================================================================
+            # ZAPIER WEBHOOK: Send roster and group assignments after group creation
+            # ========================================================================
+            try:
+                # 1. Fetch course information
+                cursor.execute("""
+                    SELECT CourseID, CourseCode, CourseName
+                    FROM course
+                    WHERE CourseID = %s
+                """, (course_id,))
+                course_info = cursor.fetchone()
+                
+                if not course_info:
+                    print("ZAPIER WARNING: Could not fetch course info, skipping webhook")
+                else:
+                    course_id_val = course_info['CourseID']
+                    course_code_val = course_info.get('CourseCode', '')
+                    course_name_val = course_info.get('CourseName', '')
+                    
+                    print(f"ZAPIER: Course Info - ID={course_id_val}, Code={course_code_val}, Name={course_name_val}")
+                    
+                    # 2. Fetch ALL enrolled students for student_emails list
+                    cursor.execute("""
+                        SELECT s.Email
+                        FROM student s
+                        JOIN enrollment e ON s.StudentID = e.StudentID
+                        WHERE e.CourseID = %s
+                        ORDER BY s.Email
+                    """, (course_id,))
+                    
+                    all_students = cursor.fetchall()
+                    student_emails = [student['Email'] for student in all_students if student.get('Email')]
+                    
+                    print(f"ZAPIER: Found {len(student_emails)} total students enrolled in course")
+                    
+                    # 3. Fetch ONLY students with group assignments for group_lookup
+                    # Use INNER JOIN to exclude unassigned students
+                    cursor.execute("""
+                        SELECT 
+                            s.Email,
+                            sg.GroupName
+                        FROM student s
+                        INNER JOIN groupmembers gm ON s.StudentID = gm.StudentID
+                        INNER JOIN studentgroup sg ON gm.GroupID = sg.GroupID
+                        WHERE sg.CourseID = %s
+                        ORDER BY s.Email
+                    """, (course_id,))
+                    
+                    students_with_groups = cursor.fetchall()
+                    
+                    # Build group_lookup list
+                    # Strip course code prefix from GroupName (e.g., "ZAPTEST123-Group1" -> "Group1")
+                    group_lookup = []
+                    
+                    for student in students_with_groups:
+                        email = student.get('Email')
+                        group_name = student.get('GroupName')
+                        
+                        if email and group_name:
+                            # Strip the course code prefix: "CourseCode-Group1" -> "Group1"
+                            # Split by first "-" and take everything after it
+                            if '-' in group_name:
+                                group_name_stripped = group_name.split('-', 1)[1]  # Takes "Group1" from "ZAPTEST123-Group1"
+                            else:
+                                group_name_stripped = group_name  # Fallback if no dash found
+                            
+                            group_lookup.append({
+                                "email": email,
+                                "group": group_name_stripped
+                            })
+                            
+                            print(f"ZAPIER: Mapped {email} -> {group_name_stripped} (from DB: {group_name})")
+                    
+                    print(f"ZAPIER: Built group_lookup with {len(group_lookup)} students (only those with group assignments)")
+                    
+                    # 4. Build Zapier payload
+                    portal_link = request.host_url.rstrip('/') + url_for('login')
+                    
+                    zapier_payload = {
+                        "secret_key": "smu_sched_pe_9f4c8d2b71e54c39",
+                        "event": "roster_imported",
+                        "course_id": course_id_val,
+                        "course_code": course_code_val,
+                        "course_name": course_name_val,
+                        "portal_link": portal_link,
+                        "student_emails": student_emails,
+                        "group_lookup": group_lookup
+                    }
+                    
+                    print("ZAPIER: Payload prepared:")
+                    print(f"  - Event: {zapier_payload['event']}")
+                    print(f"  - Course ID: {zapier_payload['course_id']}")
+                    print(f"  - Course Code: {zapier_payload['course_code']}")
+                    print(f"  - Portal Link: {zapier_payload['portal_link']}")
+                    print(f"  - Student Emails: {len(zapier_payload['student_emails'])}")
+                    print(f"  - Group Lookup Entries: {len(zapier_payload['group_lookup'])}")
+                    
+                    # 5. POST to Zapier webhook
+                    zapier_url = "https://hooks.zapier.com/hooks/catch/24454226/u80vmyt/"
+                    headers = {"Content-Type": "application/json"}
+                    
+                    print(f"ZAPIER: Sending POST to {zapier_url}")
+                    response = requests.post(zapier_url, json=zapier_payload, headers=headers, timeout=10)
+                    
+                    print(f"ZAPIER: Response Status: {response.status_code}")
+                    print(f"ZAPIER: Response Body: {response.text}")
+                    
+                    if response.status_code != 200:
+                        print(f"ZAPIER WARNING: Webhook failed with status {response.status_code}")
+                        print(f"ZAPIER WARNING: {response.text}")
+                    else:
+                        print("ZAPIER: ✅ Webhook sent successfully!")
+                    
+            except Exception as zapier_error:
+                print(f"ZAPIER ERROR: Failed to send webhook: {zapier_error}")
+                import traceback
+                traceback.print_exc()
+                # Don't fail the group creation if Zapier fails
+                print("ZAPIER: Continuing despite webhook error...")
+            
+            print("=" * 80)
+            
             # Store course_id in session for groups-in-your-class page
             session['selected_course_id'] = course_id
             
