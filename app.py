@@ -1130,6 +1130,27 @@ def import_course_roster():
     # GET request: render the form
     return render_template('import-course-roster.html')
 
+@app.route('/creating-groups', methods=['GET'])
+def creating_groups_redirect():
+    """
+    Redirect wrapper for /creating-groups without course_id parameter.
+    Gets course_id from session and redirects to the proper route.
+    """
+    # Check if professor is logged in
+    if 'professor_id' not in session:
+        flash('Please log in to access this page.', 'error')
+        return redirect(url_for('login'))
+    
+    # Get course_id from session
+    course_id = session.get('selected_course_id') or request.args.get('course_id')
+    
+    if not course_id:
+        flash('No course selected. Please import a course roster first.', 'error')
+        return redirect(url_for('import_course_roster'))
+    
+    # Redirect to the proper route with course_id
+    return redirect(url_for('creating_groups', course_id=course_id))
+
 @app.route('/creating-groups/<int:course_id>', methods=['GET', 'POST'])
 def creating_groups(course_id):
     # Check if professor is logged in
@@ -1414,6 +1435,84 @@ def signup():
     
     return render_template('signup.html')
 
+# ============================================================================
+# TEMPORARY DIAGNOSTIC FUNCTION - For checking MySQL triggers on student table
+# This function is for debugging purposes only and will be removed after testing
+# ============================================================================
+def debug_check_student_triggers():
+    """
+    Temporary diagnostic function to check if any MySQL triggers exist
+    on the student table that might reference FirstName or LastName columns.
+    
+    This is READ-ONLY and does not modify anything.
+    """
+    print("=" * 80)
+    print("DEBUG: Checking for MySQL triggers on 'student' table...")
+    print("=" * 80)
+    
+    cursor = None
+    db_conn = None
+    try:
+        # Get database connection
+        db_conn = get_connection()
+        cursor = db_conn.cursor()
+        
+        # Query to show all triggers on the student table
+        print("DEBUG: Executing: SHOW TRIGGERS WHERE `Table` = 'student';")
+        cursor.execute("SHOW TRIGGERS WHERE `Table` = 'student';")
+        
+        triggers = cursor.fetchall()
+        
+        if not triggers or len(triggers) == 0:
+            print("DEBUG: ✅ NO TRIGGERS found on 'student' table")
+        else:
+            print(f"DEBUG: ⚠️ Found {len(triggers)} trigger(s) on 'student' table:")
+            print("-" * 80)
+            for i, trigger in enumerate(triggers):
+                print(f"\nTrigger #{i+1}:")
+                print(f"  Trigger Name: {trigger[0]}")
+                print(f"  Event: {trigger[1]}")
+                print(f"  Table: {trigger[2]}")
+                print(f"  Statement: {trigger[3] if len(trigger) > 3 else 'N/A'}")
+                print(f"  Timing: {trigger[4] if len(trigger) > 4 else 'N/A'}")
+                print(f"  Full Trigger Data: {trigger}")
+                
+                # Check if trigger references FirstName or LastName
+                trigger_statement = str(trigger[3] if len(trigger) > 3 else '')
+                if 'FirstName' in trigger_statement or 'LastName' in trigger_statement:
+                    print(f"  🚨 WARNING: This trigger references FirstName or LastName!")
+        
+        cursor.close()
+        db_conn.close()
+        
+        print("=" * 80)
+        print("DEBUG: Trigger check complete")
+        print("=" * 80)
+        
+    except Exception as e:
+        print(f"DEBUG ERROR: Failed to check triggers: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+
 if __name__ == '__main__':
+    # Run diagnostic check once at startup
+    print("\n" + "=" * 80)
+    print("STARTUP: Running diagnostic check for student table triggers...")
+    print("=" * 80 + "\n")
+    debug_check_student_triggers()
+    print("\n")
+    
+    # Start the Flask application
     port = int(os.environ.get("PORT", 5002))
     app.run(host='0.0.0.0', port=port, debug=True)
