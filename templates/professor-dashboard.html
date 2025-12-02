@@ -2400,6 +2400,14 @@
   <h4 style="white-space:pre-wrap;"><span class="sqsrte-text-highlight" data-text-attribute-id="53f3046e-eb18-4c92-af6b-62eb825fcede"><strong>Active Courses:</strong></span></h4>
 </div>
 
+<!-- DEBUG: Template data check -->
+<!-- DEBUG: courses variable = {{ courses }} -->
+<!-- DEBUG: courses type = {{ courses.__class__.__name__ if courses else 'None' }} -->
+<!-- DEBUG: courses length = {{ courses|length if courses else 0 }} -->
+<!-- DEBUG: courses is defined = {{ 'yes' if courses is defined else 'no' }} -->
+<!-- DEBUG: courses is not none = {{ 'yes' if courses is not none else 'no' }} -->
+<!-- DEBUG END -->
+
 {% if courses and courses|length > 0 %}
 <div class="course-container">
   {% for course in courses %}

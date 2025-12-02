@@ -725,22 +725,182 @@ def team():
 # Professor dashboard - View and manage peer evaluations
 @app.route('/professor-dashboard')
 def professor_dashboard():
+    print("=" * 80)
+    print("PROFESSOR DASHBOARD: Route accessed")
+    print("=" * 80)
+    
     # Check if professor is logged in
     if 'professor_id' not in session:
+        print("PROFESSOR DASHBOARD: ERROR - No professor_id in session")
+        print(f"PROFESSOR DASHBOARD: Session contents: {dict(session)}")
         flash('Please log in to access the professor dashboard.', 'error')
         return redirect(url_for('login'))
     
+    professor_id = session['professor_id']
+    print(f"PROFESSOR DASHBOARD: Professor ID from session: {professor_id}")
+    print(f"PROFESSOR DASHBOARD: Full session data: {dict(session)}")
+    
+    cursor = None
+    db_conn = None
     try:
         # Fetch courses assigned to this professor
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM course WHERE ProfessorID = %s", (session['professor_id'],))
-        courses = cursor.fetchall()
-        cursor.close()
+        print("PROFESSOR DASHBOARD: Validating database connection...")
+        db_conn = ensure_connection(None)
+        print("PROFESSOR DASHBOARD: Database connection validated")
         
+        cursor = db_conn.cursor(dictionary=True)
+        print("PROFESSOR DASHBOARD: Cursor created")
+        
+        # Log the exact query being executed
+        query = "SELECT * FROM course WHERE ProfessorID = %s"
+        print(f"PROFESSOR DASHBOARD: Executing query: {query}")
+        print(f"PROFESSOR DASHBOARD: Query parameter: ProfessorID = {professor_id}")
+        
+        cursor.execute(query, (professor_id,))
+        courses = cursor.fetchall()
+        
+        print(f"PROFESSOR DASHBOARD: Query returned {len(courses)} courses")
+        if len(courses) == 0:
+            print("PROFESSOR DASHBOARD: DEBUG - Professor has no assigned courses")
+            print(f"PROFESSOR DASHBOARD: DEBUG - Searched for ProfessorID = {professor_id}")
+        else:
+            print(f"PROFESSOR DASHBOARD: Courses found:")
+            for i, course in enumerate(courses):
+                print(f"  [{i}] CourseID={course.get('CourseID')}, CourseCode={course.get('CourseCode')}, "
+                      f"CourseName={course.get('CourseName')}, ProfessorID={course.get('ProfessorID')}")
+        
+        cursor.close()
+        cursor = None
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        db_conn = None
+        
+        print("PROFESSOR DASHBOARD: Rendering template with courses")
+        print("=" * 80)
         return render_template('professor-dashboard.html', courses=courses)
+        
     except Exception as e:
+        print("=" * 80)
+        print("PROFESSOR DASHBOARD: EXCEPTION CAUGHT")
+        print(f"PROFESSOR DASHBOARD: Error type: {type(e).__name__}")
+        print(f"PROFESSOR DASHBOARD: Error message: {str(e)}")
+        import traceback
+        print("PROFESSOR DASHBOARD: Full traceback:")
+        traceback.print_exc()
+        print("=" * 80)
+        
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        
         flash(f'Error loading courses: {str(e)}', 'error')
         return render_template('professor-dashboard.html', courses=[])
+
+# TEMPORARY TEST ROUTE - For debugging professor course loading
+@app.route('/debug-professor-courses')
+def debug_professor_courses():
+    """
+    Temporary debugging route to test professor course queries.
+    This route will be removed after debugging is complete.
+    """
+    print("=" * 80)
+    print("DEBUG TEST ROUTE: Starting professor course debug")
+    print("=" * 80)
+    
+    cursor = None
+    db_conn = None
+    try:
+        db_conn = ensure_connection(None)
+        cursor = db_conn.cursor(dictionary=True)
+        
+        # First, let's see ALL professors in the database
+        print("DEBUG: Fetching all professors...")
+        cursor.execute("SELECT ProfessorID, Name, Email FROM professor")
+        all_professors = cursor.fetchall()
+        print(f"DEBUG: Found {len(all_professors)} professors in database:")
+        for prof in all_professors:
+            print(f"  - ProfessorID={prof['ProfessorID']}, Name={prof.get('Name')}, Email={prof.get('Email')}")
+        
+        # Now let's see ALL courses in the database
+        print("\nDEBUG: Fetching all courses...")
+        cursor.execute("SELECT CourseID, CourseCode, CourseName, ProfessorID FROM course")
+        all_courses = cursor.fetchall()
+        print(f"DEBUG: Found {len(all_courses)} courses in database:")
+        for course in all_courses:
+            print(f"  - CourseID={course['CourseID']}, CourseCode={course.get('CourseCode')}, "
+                  f"CourseName={course.get('CourseName')}, ProfessorID={course.get('ProfessorID')}")
+        
+        # Test with the professor ID from session if available
+        if 'professor_id' in session:
+            test_professor_id = session['professor_id']
+            print(f"\nDEBUG: Testing with professor ID from session: {test_professor_id}")
+        elif all_professors:
+            test_professor_id = all_professors[0]['ProfessorID']
+            print(f"\nDEBUG: No session, testing with first professor ID: {test_professor_id}")
+        else:
+            cursor.close()
+            if db_conn:
+                db_conn.close()
+            return {"error": "No professors found in database"}, 500
+        
+        # Query courses for the test professor
+        print(f"DEBUG: Querying courses for ProfessorID={test_professor_id}...")
+        cursor.execute("SELECT * FROM course WHERE ProfessorID = %s", (test_professor_id,))
+        professor_courses = cursor.fetchall()
+        
+        print(f"DEBUG: Found {len(professor_courses)} courses for professor {test_professor_id}")
+        for course in professor_courses:
+            print(f"  - {course}")
+        
+        cursor.close()
+        if db_conn:
+            db_conn.close()
+        
+        # Return results as JSON for easy inspection
+        result = {
+            "test_professor_id": test_professor_id,
+            "session_professor_id": session.get('professor_id'),
+            "total_professors": len(all_professors),
+            "total_courses": len(all_courses),
+            "courses_for_test_professor": len(professor_courses),
+            "all_professors": all_professors,
+            "all_courses": all_courses,
+            "professor_courses": professor_courses
+        }
+        
+        print("=" * 80)
+        print("DEBUG TEST ROUTE: Complete")
+        print("=" * 80)
+        
+        return result
+        
+    except Exception as e:
+        print(f"DEBUG ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if db_conn:
+            try:
+                db_conn.close()
+            except:
+                pass
+        
+        return {"error": str(e)}, 500
 
 # Assign peer evaluation - Create new evaluation assignments
 @app.route('/assign-evaluations', methods=['GET', 'POST'])
