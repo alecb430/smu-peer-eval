@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextButton = carousel.querySelector('.carousel-button--next');
     const prevButton = carousel.querySelector('.carousel-button--prev');
 
-    // Get width of a slide for positioning
+    
     const slideWidth = slides[0].getBoundingClientRect().width;
     const slidesToShow = window.innerWidth > 1024 ? 3 : window.innerWidth > 768 ? 2 : 1;
 
-    // Arrange slides next to each other
+    
     const setSlidePosition = (slide, index) => {
         slide.style.left = `${slideWidth * index}px`;
     };
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         targetSlide.classList.add('current-slide');
     };
 
-    // Update button states
+    
     const updateButtons = (targetIndex) => {
         prevButton.disabled = targetIndex === 0;
         nextButton.disabled = targetIndex >= slides.length - slidesToShow;
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nextButton.style.opacity = nextButton.disabled ? '0.3' : '1';
     };
 
-    // Click handlers for buttons
+    
     nextButton.addEventListener('click', () => {
         const currentSlide = track.querySelector('.current-slide');
         const nextSlide = currentSlide.nextElementSibling;
@@ -53,11 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtons(slides.indexOf(prevSlide));
     });
 
-    // Initialize first slide and buttons
+    
     slides[0].classList.add('current-slide');
     updateButtons(0);
 
-    // Handle window resize
+    
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
@@ -65,13 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentSlide = track.querySelector('.current-slide');
             const currentIndex = slides.indexOf(currentSlide);
 
-            // Recalculate slide widths and positions
+            
             const newSlideWidth = slides[0].getBoundingClientRect().width;
             slides.forEach((slide, index) => {
                 slide.style.left = `${newSlideWidth * index}px`;
             });
 
-            // Update carousel position
+            
             moveToSlide(currentSlide, slides[currentIndex]);
             updateButtons(currentIndex);
         }, 100);

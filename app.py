@@ -11,13 +11,13 @@ import io
 from config import Config
 from mysql.connector import OperationalError
 
-#added comment to test DEMO#
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret")
 
 
-# Asset redirect routes for Squarespace-style paths
-# These map /css/, /js/, /images/, /assets/ to Flask's static folder
+
+
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     return send_from_directory('static/css', filename)
@@ -34,7 +34,7 @@ def serve_images(filename):
 def serve_assets(filename):
     return send_from_directory('static/assets', filename)
 
-# Authentication decorator
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -44,7 +44,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Zapier webhook helper function
+
 def send_to_zapier(evaluation_id):
     """
     Send evaluation data to Zapier webhook after a peer evaluation is submitted.
@@ -59,8 +59,8 @@ def send_to_zapier(evaluation_id):
     cursor = None
     db_conn = None
     try:
-        # Query the evaluation data with all related information
-        # Validate connection before querying
+
+
         db_conn = ensure_connection(None)
         cursor = db_conn.cursor()
         
@@ -98,11 +98,11 @@ def send_to_zapier(evaluation_id):
             print(f"ERROR: No evaluation found with PeerEvalID {evaluation_id}")
             return False
         
-        # Extract data from query result
+
         student_id = result[0]
         course_id = result[1]
         
-        # Build the payload dictionary
+
         data = {
             "student_id": student_id,
             "peer_eval_id": evaluation_id,
@@ -119,24 +119,24 @@ def send_to_zapier(evaluation_id):
             "overall": result[10]
         }
         
-        # Generate signature for authentication
+
         secret = "smu_sched_pe_9f4c8d2b71e54c39"
         signature = hashlib.sha256(
             f"{data['student_id']}{data['peer_eval_id']}{secret}".encode()
         ).hexdigest()
         data["signature"] = signature
         
-        # Send POST request to Zapier webhook
+
         zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/us4sgr4/"
         response = requests.post(zapier_webhook_url, json=data, timeout=5)
         response.raise_for_status()
         
-        print("✅ Zapier webhook triggered successfully after peer evaluation submission.")
+        print(" Zapier webhook triggered successfully after peer evaluation submission.")
         print(f"   Student ID: {student_id} | PeerEvalID: {evaluation_id} | CourseID: {course_id}")
         return True
             
     except Exception as e:
-        print(f"⚠️ Zapier webhook error: {e}")
+        print(f" Zapier webhook error: {e}")
         if cursor:
             try:
                 cursor.close()
@@ -149,7 +149,7 @@ def send_to_zapier(evaluation_id):
                 pass
         return False
 
-# Home route
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -175,7 +175,7 @@ def login():
     print("LOGIN ROUTE: Starting login process")
     print(f"Request method: {request.method}")
     
-    # Clear session at the beginning to avoid leftover data
+
     print("LOGIN: Clearing session to remove any leftover data")
     session.clear()
     print(f"LOGIN: Session after clear: {dict(session)}")
@@ -184,7 +184,7 @@ def login():
         cursor = None
         db_conn = None
         try:
-            # 1. Print incoming POST data
+
             email = request.form.get('email', '').strip()
             password = request.form.get('password', '').strip()
             print(f"LOGIN: Received POST data - Email: '{email}', Password: {'*' * len(password) if password else '(empty)'}")
@@ -194,7 +194,7 @@ def login():
                 flash('Email is required.', 'error')
                 return render_template('login.html')
             
-            # 2. Check student table first - with connection validation and retry
+
             print("LOGIN: Querying student table...")
             student = None
             retry_count = 0
@@ -202,16 +202,16 @@ def login():
             
             while retry_count <= max_retries:
                 try:
-                    # Validate and get fresh connection before creating cursor
+
                     print(f"LOGIN: Validating connection (attempt {retry_count + 1})...")
-                    db_conn = ensure_connection(None)  # Always get fresh connection
+                    db_conn = ensure_connection(None)
                     cursor = db_conn.cursor()
                     print("LOGIN: Connection validated, cursor created")
                     
                     cursor.execute("SELECT StudentID, Name, Email FROM student WHERE Email = %s", (email,))
                     student = cursor.fetchone()
                     print(f"LOGIN: Student query result: {student}")
-                    break  # Success, exit retry loop
+                    break
                     
                 except OperationalError as op_err:
                     print(f"LOGIN: OperationalError on student query (attempt {retry_count + 1}): {str(op_err)}")
@@ -245,7 +245,7 @@ def login():
                 student_email = student[2]
                 print(f"LOGIN: Student found - StudentID: {student_id}, Name: '{student_name}', Email: {student_email}")
                 
-                # 3. Set session variables and print changes
+
                 print("LOGIN: Setting session variables for student...")
                 session['user_id'] = student_id
                 print(f"LOGIN: Session['user_id'] = {session.get('user_id')}")
@@ -269,7 +269,7 @@ def login():
                 cursor = None
                 db_conn = None
                 
-                # 6. Print confirmation after successful login
+
                 print("=" * 60)
                 print("LOGIN SUCCESS: Student login confirmed")
                 print(f"  User Type: {session.get('user_type')}")
@@ -281,14 +281,14 @@ def login():
                 flash('Login successful! Welcome back.', 'success')
                 return redirect(url_for('student_dashboard'))
             
-            # 4. Check professor table - with connection validation and retry
+
             print("LOGIN: Student not found, querying professor table...")
             professor = None
             retry_count = 0
             
             while retry_count <= max_retries:
                 try:
-                    # Validate and get fresh connection before creating cursor
+
                     print(f"LOGIN: Validating connection for professor query (attempt {retry_count + 1})...")
                     if cursor:
                         try:
@@ -301,14 +301,14 @@ def login():
                         except:
                             pass
                     
-                    db_conn = ensure_connection(None)  # Always get fresh connection
+                    db_conn = ensure_connection(None)
                     cursor = db_conn.cursor()
                     print("LOGIN: Connection validated for professor query, cursor created")
                     
                     cursor.execute("SELECT ProfessorID, Name, Email FROM professor WHERE Email = %s AND Password = %s", (email, password))
                     professor = cursor.fetchone()
                     print(f"LOGIN: Professor query result: {professor}")
-                    break  # Success, exit retry loop
+                    break
                     
                 except OperationalError as op_err:
                     print(f"LOGIN: OperationalError on professor query (attempt {retry_count + 1}): {str(op_err)}")
@@ -342,7 +342,7 @@ def login():
                 professor_email = professor[2]
                 print(f"LOGIN: Professor found - ProfessorID: {professor_id}, Name: '{professor_name}', Email: {professor_email}")
                 
-                # 3. Set session variables and print changes
+
                 print("LOGIN: Setting session variables for professor...")
                 session['professor_id'] = professor_id
                 print(f"LOGIN: Session['professor_id'] = {session.get('professor_id')}")
@@ -366,7 +366,7 @@ def login():
                 cursor = None
                 db_conn = None
                 
-                # 6. Print confirmation after successful login
+
                 print("=" * 60)
                 print("LOGIN SUCCESS: Professor login confirmed")
                 print(f"  User Type: {session.get('user_type')}")
@@ -378,7 +378,7 @@ def login():
                 flash('Login successful! Welcome, Professor.', 'success')
                 return redirect(url_for('professor_dashboard'))
             
-            # Login failed - no match found
+
             print("LOGIN: ERROR - No match found in student or professor tables")
             print(f"LOGIN: Attempted email: '{email}'")
             if cursor:
@@ -395,7 +395,7 @@ def login():
             return render_template('login.html')
                 
         except Exception as e:
-            # 9. Catch errors, print with traceback, and flash message
+
             print("=" * 60)
             print("LOGIN: EXCEPTION CAUGHT")
             print(f"LOGIN: Error type: {type(e).__name__}")
@@ -405,7 +405,7 @@ def login():
             traceback.print_exc()
             print("=" * 60)
             
-            # 8. Ensure cursor and connection are closed even on error
+
             if cursor:
                 try:
                     cursor.close()
@@ -420,7 +420,7 @@ def login():
             flash(f'Login error: {str(e)}', 'error')
             return render_template('login.html')
     
-    # GET request - show login form
+
     print("LOGIN: GET request - rendering login form")
     return render_template('login.html')
 
@@ -428,22 +428,22 @@ def login():
 def get_started():
     if request.method == 'POST':
         try:
-            # Get form data from the existing form in get-started.html
+
             fname = request.form['fname']
             lname = request.form['lname']
             email = request.form['email']
             
-            # Combine first and last name
+
             full_name = f"{fname} {lname}"
             
-            # Insert student data into the database
+
             cursor = connection.cursor()
             
-            # Try the standard insert first
+
             try:
                 cursor.execute("INSERT INTO student (Name, Email) VALUES (%s, %s)", (full_name, email))
             except Exception as db_error:
-                # If StudentID auto-increment is not working, try with explicit NULL
+
                 if "doesn't have a default value" in str(db_error):
                     cursor.execute("INSERT INTO student (StudentID, Name, Email) VALUES (NULL, %s, %s)", (full_name, email))
                 else:
@@ -467,27 +467,27 @@ def peer_evaluation(peer_eval_id):
     print(f"PEER EVAL: Loaded route with PeerEvalID={peer_eval_id}")
     student_id = session.get('user_id')
     
-    # POST: Submit evaluation
+
     if request.method == 'POST':
         cursor = None
         db_conn = None
         try:
             print(f"POST: Submitting evaluation for PeerEvalID={peer_eval_id}")
             
-            # Server-side validation: Check all required fields
+
             required_fields = ['contribution', 'collaboration', 'planning', 'communication', 'inclusivity', 'overall']
             values = {}
             
             for field in required_fields:
                 raw = request.form.get(field)
                 
-                # Check if field is missing or empty
+
                 if raw is None or raw == '':
                     print(f"VALIDATION ERROR: Missing field '{field}'")
                     flash("Please complete all questions before submitting.", 'error')
                     return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
                 
-                # Convert to integer and validate range
+
                 try:
                     v = int(raw)
                     if v < 0 or v > 4:
@@ -502,8 +502,8 @@ def peer_evaluation(peer_eval_id):
             
             print(f"VALIDATION PASSED: All fields valid for PeerEvalID={peer_eval_id}")
             
-            # Simple UPDATE by PeerEvalID
-            # Validate connection before querying
+
+
             db_conn = ensure_connection(None)
             cursor = db_conn.cursor()
             
@@ -528,7 +528,7 @@ def peer_evaluation(peer_eval_id):
                     pass
             db_conn = None
             
-            # Send to Zapier
+
             zapier_success = send_to_zapier(peer_eval_id)
             if not zapier_success:
                 print("Warning: Zapier webhook failed, but evaluation saved")
@@ -555,12 +555,12 @@ def peer_evaluation(peer_eval_id):
             flash('There was a problem saving your evaluation. Please try again.', 'error')
             return redirect(url_for('peer_evaluation', peer_eval_id=peer_eval_id))
     
-    # GET: Load evaluation form
+
     cursor = None
     db_conn = None
     try:
         print(f"GET: Loading form for PeerEvalID={peer_eval_id}")
-        # Validate connection before querying
+
         db_conn = ensure_connection(None)
         cursor = db_conn.cursor()
         
@@ -629,11 +629,11 @@ def student_dashboard():
     cursor = None
     db_conn = None
     try:
-        # Get the logged-in student's ID from session
+
         student_id = session.get('user_id')
         
-        # Query evaluations for the logged-in student (Sprint 1: Show ALL assignments)
-        # Validate connection before querying
+
+
         print(f"DASHBOARD: Fetching evaluations for student {student_id}")
         db_conn = ensure_connection(None)
         cursor = db_conn.cursor()
@@ -657,7 +657,7 @@ def student_dashboard():
         cursor.close()
         cursor = None
         
-        # Query enrolled courses for the logged-in student
+
         print(f"DASHBOARD: Fetching enrolled courses for student {student_id}")
         db_conn = ensure_connection(None)
         cursor = db_conn.cursor(dictionary=True)
@@ -722,14 +722,14 @@ def student_dashboard():
 def team():
     return render_template('team.html')
 
-# Professor dashboard - View and manage peer evaluations
+
 @app.route('/professor-dashboard')
 def professor_dashboard():
     print("=" * 80)
     print("PROFESSOR DASHBOARD: Route accessed")
     print("=" * 80)
     
-    # Check if professor is logged in
+
     if 'professor_id' not in session:
         print("PROFESSOR DASHBOARD: ERROR - No professor_id in session")
         print(f"PROFESSOR DASHBOARD: Session contents: {dict(session)}")
@@ -743,7 +743,7 @@ def professor_dashboard():
     cursor = None
     db_conn = None
     try:
-        # Fetch courses assigned to this professor
+
         print("PROFESSOR DASHBOARD: Validating database connection...")
         db_conn = ensure_connection(None)
         print("PROFESSOR DASHBOARD: Database connection validated")
@@ -751,7 +751,7 @@ def professor_dashboard():
         cursor = db_conn.cursor(dictionary=True)
         print("PROFESSOR DASHBOARD: Cursor created")
         
-        # Log the exact query being executed
+
         query = "SELECT * FROM course WHERE ProfessorID = %s"
         print(f"PROFESSOR DASHBOARD: Executing query: {query}")
         print(f"PROFESSOR DASHBOARD: Query parameter: ProfessorID = {professor_id}")
@@ -806,7 +806,7 @@ def professor_dashboard():
         flash(f'Error loading courses: {str(e)}', 'error')
         return render_template('professor-dashboard.html', courses=[])
 
-# TEMPORARY TEST ROUTE - For debugging professor course loading
+
 @app.route('/debug-professor-courses')
 def debug_professor_courses():
     """
@@ -823,7 +823,7 @@ def debug_professor_courses():
         db_conn = ensure_connection(None)
         cursor = db_conn.cursor(dictionary=True)
         
-        # First, let's see ALL professors in the database
+
         print("DEBUG: Fetching all professors...")
         cursor.execute("SELECT ProfessorID, Name, Email FROM professor")
         all_professors = cursor.fetchall()
@@ -831,7 +831,7 @@ def debug_professor_courses():
         for prof in all_professors:
             print(f"  - ProfessorID={prof['ProfessorID']}, Name={prof.get('Name')}, Email={prof.get('Email')}")
         
-        # Now let's see ALL courses in the database
+
         print("\nDEBUG: Fetching all courses...")
         cursor.execute("SELECT CourseID, CourseCode, CourseName, ProfessorID FROM course")
         all_courses = cursor.fetchall()
@@ -840,7 +840,7 @@ def debug_professor_courses():
             print(f"  - CourseID={course['CourseID']}, CourseCode={course.get('CourseCode')}, "
                   f"CourseName={course.get('CourseName')}, ProfessorID={course.get('ProfessorID')}")
         
-        # Test with the professor ID from session if available
+
         if 'professor_id' in session:
             test_professor_id = session['professor_id']
             print(f"\nDEBUG: Testing with professor ID from session: {test_professor_id}")
@@ -853,7 +853,7 @@ def debug_professor_courses():
                 db_conn.close()
             return {"error": "No professors found in database"}, 500
         
-        # Query courses for the test professor
+
         print(f"DEBUG: Querying courses for ProfessorID={test_professor_id}...")
         cursor.execute("SELECT * FROM course WHERE ProfessorID = %s", (test_professor_id,))
         professor_courses = cursor.fetchall()
@@ -866,7 +866,7 @@ def debug_professor_courses():
         if db_conn:
             db_conn.close()
         
-        # Return results as JSON for easy inspection
+
         result = {
             "test_professor_id": test_professor_id,
             "session_professor_id": session.get('professor_id'),
@@ -902,39 +902,39 @@ def debug_professor_courses():
         
         return {"error": str(e)}, 500
 
-# Assign peer evaluation - Create new evaluation assignments
+
 @app.route('/assign-evaluations', methods=['GET', 'POST'])
 def assign_evaluations():
-    # Get course_id from URL parameter or form
+
     course_id = request.args.get('course_id') or request.form.get('course_id')
-    print("DEBUG: CourseID from request =", course_id)  # <--- DEBUG
+    print("DEBUG: CourseID from request =", course_id)
     
-    # Validate course_id exists
+
     if not course_id:
         flash('Missing course ID.', 'error')
         return redirect(url_for('professor_dashboard'))
     
-    # Fetch course details from database
+
     cursor = connection.cursor(dictionary=True)
     cursor.execute("SELECT * FROM course WHERE CourseID = %s", (course_id,))
     course = cursor.fetchone()
     cursor.close()
     
-    # If no course found, show error
+
     if not course:
         print("DEBUG: No course found for CourseID =", course_id)
         flash('Course not found.', 'error')
         return redirect(url_for('professor_dashboard'))
     
-    # Handle form submission
+
     if request.method == 'POST':
-        print("DEBUG: POST reached:", request.form)  # <--- DEBUG
+        print("DEBUG: POST reached:", request.form)
         raw_due_date = request.form.get('due_date')
         raw_time = request.form.get('time')
-        print("DEBUG: Raw due date from form =", raw_due_date)  # <--- DEBUG
-        print("DEBUG: Raw time from form =", raw_time)  # <--- DEBUG
+        print("DEBUG: Raw due date from form =", raw_due_date)
+        print("DEBUG: Raw time from form =", raw_time)
         
-        # Convert browser input to yyyy-mm-dd format for MySQL
+
         try:
             if '/' in raw_due_date:
                 formatted_due_date = datetime.strptime(raw_due_date, '%m/%d/%Y').strftime('%Y-%m-%d')
@@ -945,17 +945,17 @@ def assign_evaluations():
             flash('Invalid date format.', 'error')
             return redirect(request.url)
         
-        print("DEBUG: Formatted due date =", formatted_due_date)  # <--- DEBUG
+        print("DEBUG: Formatted due date =", formatted_due_date)
         
-        # Update the database
+
         cursor = connection.cursor()
         cursor.execute("UPDATE course SET EvalDueDate = %s WHERE CourseID = %s", (formatted_due_date, course_id))
         connection.commit()
         
-        print("DEBUG: Rows affected =", cursor.rowcount)  # <--- DEBUG
+        print("DEBUG: Rows affected =", cursor.rowcount)
         cursor.close()
         
-        # Trigger Zapier webhook to notify all students enrolled in this course
+
         try:
             cursor = connection.cursor(dictionary=True)
             cursor.execute("""
@@ -967,10 +967,10 @@ def assign_evaluations():
             student_emails = [row['StudentEmail'] for row in cursor.fetchall()]
             cursor.close()
             
-            # Capture due_time from form (even if not stored in database)
+
             eval_due_time = request.form.get('time') or request.form.get('eval_due_time')
             
-            # Build the Zapier payload using the new simplified structure
+
             data = {
                 "secret_key": "smu_sched_pe_9f4c8d2b71e54c39",
                 "course_id": int(course_id),
@@ -979,26 +979,26 @@ def assign_evaluations():
                 "student_emails": student_emails
             }
             
-            # Send POST request to Zapier
+
             zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/24454226/us4sgr4/"
             response = requests.post(zapier_webhook_url, json=data, timeout=5)
             response.raise_for_status()
             
-            print(f"✅ Zapier webhook triggered for course {course_id} — notifying {len(student_emails)} students.")
+            print(f" Zapier webhook triggered for course {course_id} — notifying {len(student_emails)} students.")
             
         except Exception as e:
-            print(f"⚠️ Zapier webhook error: {e}")
+            print(f" Zapier webhook error: {e}")
         
         flash('Evaluation due date successfully updated!', 'success')
         
-        # Redirect to static evaluation-analysis page
-        print("DEBUG: Redirecting to evaluation-analysis (static page)")  # <--- DEBUG
+
+        print("DEBUG: Redirecting to evaluation-analysis (static page)")
         return redirect(url_for('evaluation_analysis'))
     
-    # GET request: render the form
+
     return render_template('confirmation-screens-1.html', course=course)
 
-# Evaluation analysis - View and analyze evaluation results
+
 @app.route('/evaluation-analysis')
 def evaluation_analysis():
     """
@@ -1009,17 +1009,17 @@ def evaluation_analysis():
 
 @app.route('/import-course-roster', methods=['GET', 'POST'])
 def import_course_roster():
-    # Check if professor is logged in
+
     if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        # Get form data
+
         course_code = request.form.get('course_code')
         csv_file = request.files.get('csv_file')
         
-        # Validate inputs
+
         if not course_code:
             flash('Course code is required.', 'error')
             return redirect(request.url)
@@ -1029,22 +1029,22 @@ def import_course_roster():
             return redirect(request.url)
         
         try:
-            # Read CSV file content
-            # Decode the file stream to handle encoding properly
-            stream = io.TextIOWrapper(csv_file.stream, encoding='utf-8-sig')  # utf-8-sig handles BOM
+
+
+            stream = io.TextIOWrapper(csv_file.stream, encoding='utf-8-sig')
             
-            # Parse CSV using DictReader
+
             reader = csv.DictReader(stream)
             
-            # Get database connection
+
             cursor = connection.cursor()
             
-            # Check if course exists, if not create it
+
             cursor.execute("SELECT CourseID FROM course WHERE CourseCode = %s", (course_code,))
             course_row = cursor.fetchone()
             
             if not course_row:
-                # Course doesn't exist, create it
+
                 cursor.execute(
                     "INSERT INTO course (CourseCode, ProfessorID) VALUES (%s, %s)",
                     (course_code, session['professor_id'])
@@ -1056,13 +1056,13 @@ def import_course_roster():
                 course_id = course_row[0]
                 print(f"Found existing course: {course_code} with CourseID: {course_id}")
             
-            # Process each row in the CSV
+
             students_added = 0
             enrollments_added = 0
             
             for row in reader:
-                # Extract data from CSV row
-                # Handle potential column name variations (case-insensitive)
+
+
                 student_id = None
                 name = None
                 email = None
@@ -1076,12 +1076,12 @@ def import_course_roster():
                     elif key_lower == 'email':
                         email = value.strip()
                 
-                # Validate required fields
+
                 if not student_id or not name or not email:
                     print(f"Warning: Skipping row with missing data: {row}")
                     continue
                 
-                # Check if student exists, if not create them
+
                 cursor.execute("SELECT StudentID FROM student WHERE StudentID = %s", (student_id,))
                 if not cursor.fetchone():
                     cursor.execute(
@@ -1093,7 +1093,7 @@ def import_course_roster():
                 else:
                     print(f"Student already exists: {name} (ID: {student_id})")
                 
-                # Create enrollment record (INSERT IGNORE to avoid duplicates)
+
                 cursor.execute(
                     "INSERT IGNORE INTO enrollment (CourseID, StudentID) VALUES (%s, %s)",
                     (course_id, student_id)
@@ -1102,14 +1102,14 @@ def import_course_roster():
                     enrollments_added += 1
                     print(f"Enrolled student {student_id} in course {course_code}")
             
-            # Commit all changes
+
             connection.commit()
             cursor.close()
             
             flash(f'Roster imported successfully! Added {students_added} new students and {enrollments_added} enrollments.', 'success')
             print(f"Import complete: {students_added} students added, {enrollments_added} enrollments created")
             
-            # Store course_id in session for groups-in-your-class page
+
             session['selected_course_id'] = course_id
             
             return redirect(url_for('creating_groups', course_id=course_id))
@@ -1119,7 +1119,7 @@ def import_course_roster():
             print(f"CSV parsing error: {e}")
             return redirect(request.url)
         except Exception as e:
-            # Rollback on any error
+
             connection.rollback()
             flash(f'Error processing file: {str(e)}', 'error')
             print(f"Error processing roster: {e}")
@@ -1127,7 +1127,7 @@ def import_course_roster():
             traceback.print_exc()
             return redirect(request.url)
     
-    # GET request: render the form
+
     return render_template('import-course-roster.html')
 
 @app.route('/creating-groups', methods=['GET'])
@@ -1136,34 +1136,34 @@ def creating_groups_redirect():
     Redirect wrapper for /creating-groups without course_id parameter.
     Gets course_id from session and redirects to the proper route.
     """
-    # Check if professor is logged in
+
     if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
-    # Get course_id from session
+
     course_id = session.get('selected_course_id') or request.args.get('course_id')
     
     if not course_id:
         flash('No course selected. Please import a course roster first.', 'error')
         return redirect(url_for('import_course_roster'))
     
-    # Redirect to the proper route with course_id
+
     return redirect(url_for('creating_groups', course_id=course_id))
 
 @app.route('/creating-groups/<int:course_id>', methods=['GET', 'POST'])
 def creating_groups(course_id):
-    # Check if professor is logged in
+
     if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
     
-    # Handle POST form submission
+
     if request.method == 'POST':
         conn = None
         cursor = None
         try:
-            # Get form data
+
             selected_group_name = request.form.get('group_select')
             selected_students = request.form.getlist('student_select')
             
@@ -1175,11 +1175,11 @@ def creating_groups(course_id):
                 flash('Please select at least one student.', 'error')
                 return redirect(url_for('creating_groups', course_id=course_id))
             
-            # Get database connection
+
             conn = get_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Get CourseCode to format group name
+
             cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
             course_result = cursor.fetchone()
             course_code = course_result['CourseCode'] if course_result and course_result.get('CourseCode') else None
@@ -1187,7 +1187,7 @@ def creating_groups(course_id):
             if not course_code:
                 course_code = "UnknownCourse"
             
-            # Extract group number from selected_group_name (e.g., "Group 1" -> "1")
+
             import re
             match = re.search(r'(\d+)', selected_group_name)
             group_number = match.group(1) if match else None
@@ -1196,15 +1196,15 @@ def creating_groups(course_id):
                 flash('Could not determine group number.', 'error')
                 return redirect(url_for('creating_groups', course_id=course_id))
             
-            # Format group name as {CourseCode}-Group{number}
+
             formatted_group_name = f"{course_code}-Group{group_number}"
             
-            # 1️⃣ Generate a unique GroupID
+
             cursor.execute("SELECT MAX(GroupID) AS MaxGroupID FROM studentgroup")
             result = cursor.fetchone()
-            next_group_id = (result['MaxGroupID'] or 999) + 1  # start from 1000 if none exist
+            next_group_id = (result['MaxGroupID'] or 999) + 1
             
-            # 2️⃣ Check if group already exists for this course
+
             cursor.execute("SELECT GroupID FROM studentgroup WHERE CourseID = %s AND GroupName = %s", 
                          (course_id, formatted_group_name))
             existing_group = cursor.fetchone()
@@ -1216,10 +1216,10 @@ def creating_groups(course_id):
                              (next_group_id, course_id, formatted_group_name))
                 group_id = next_group_id
             
-            # 3️⃣ Add students to groupmembers (prevent duplicates)
+
             students_added = 0
             for student_id in selected_students:
-                if student_id:  # Skip empty values
+                if student_id:
                     cursor.execute("SELECT * FROM groupmembers WHERE GroupID = %s AND StudentID = %s", 
                                  (group_id, student_id))
                     if not cursor.fetchone():
@@ -1234,11 +1234,11 @@ def creating_groups(course_id):
             print(f"CREATE GROUP: Preparing Zapier webhook for course {course_id}")
             print("=" * 80)
             
-            # ========================================================================
-            # ZAPIER WEBHOOK: Send roster and group assignments after group creation
-            # ========================================================================
+
+
+
             try:
-                # 1. Fetch course information
+
                 cursor.execute("""
                     SELECT CourseID, CourseCode, CourseName
                     FROM course
@@ -1255,7 +1255,7 @@ def creating_groups(course_id):
                     
                     print(f"ZAPIER: Course Info - ID={course_id_val}, Code={course_code_val}, Name={course_name_val}")
                     
-                    # 2. Fetch ALL enrolled students for student_emails list
+
                     cursor.execute("""
                         SELECT s.Email
                         FROM student s
@@ -1269,8 +1269,8 @@ def creating_groups(course_id):
                     
                     print(f"ZAPIER: Found {len(student_emails)} total students enrolled in course")
                     
-                    # 3. Fetch ONLY students with group assignments for group_lookup
-                    # Use INNER JOIN to exclude unassigned students
+
+
                     cursor.execute("""
                         SELECT 
                             s.Email,
@@ -1284,8 +1284,8 @@ def creating_groups(course_id):
                     
                     students_with_groups = cursor.fetchall()
                     
-                    # Build group_lookup list
-                    # Strip course code prefix from GroupName (e.g., "ZAPTEST123-Group1" -> "Group1")
+
+
                     group_lookup = []
                     
                     for student in students_with_groups:
@@ -1293,12 +1293,12 @@ def creating_groups(course_id):
                         group_name = student.get('GroupName')
                         
                         if email and group_name:
-                            # Strip the course code prefix: "CourseCode-Group1" -> "Group1"
-                            # Split by first "-" and take everything after it
+
+
                             if '-' in group_name:
-                                group_name_stripped = group_name.split('-', 1)[1]  # Takes "Group1" from "ZAPTEST123-Group1"
+                                group_name_stripped = group_name.split('-', 1)[1]
                             else:
-                                group_name_stripped = group_name  # Fallback if no dash found
+                                group_name_stripped = group_name
                             
                             group_lookup.append({
                                 "email": email,
@@ -1309,7 +1309,7 @@ def creating_groups(course_id):
                     
                     print(f"ZAPIER: Built group_lookup with {len(group_lookup)} students (only those with group assignments)")
                     
-                    # 4. Build Zapier payload
+
                     portal_link = request.host_url.rstrip('/') + url_for('login')
                     
                     zapier_payload = {
@@ -1331,7 +1331,7 @@ def creating_groups(course_id):
                     print(f"  - Student Emails: {len(zapier_payload['student_emails'])}")
                     print(f"  - Group Lookup Entries: {len(zapier_payload['group_lookup'])}")
                     
-                    # 5. POST to Zapier webhook
+
                     zapier_url = "https://hooks.zapier.com/hooks/catch/24454226/u80vmyt/"
                     headers = {"Content-Type": "application/json"}
                     
@@ -1345,24 +1345,24 @@ def creating_groups(course_id):
                         print(f"ZAPIER WARNING: Webhook failed with status {response.status_code}")
                         print(f"ZAPIER WARNING: {response.text}")
                     else:
-                        print("ZAPIER: ✅ Webhook sent successfully!")
+                        print("ZAPIER:  Webhook sent successfully!")
                     
             except Exception as zapier_error:
                 print(f"ZAPIER ERROR: Failed to send webhook: {zapier_error}")
                 import traceback
                 traceback.print_exc()
-                # Don't fail the group creation if Zapier fails
+
                 print("ZAPIER: Continuing despite webhook error...")
             
             print("=" * 80)
             
-            # Store course_id in session for groups-in-your-class page
+
             session['selected_course_id'] = course_id
             
-            # Prepare success message
-            success_message = f"✅ {formatted_group_name} successfully created!"
+
+            success_message = f" {formatted_group_name} successfully created!"
             
-            # Re-fetch course and students for template rendering
+
             cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
             course = cursor.fetchone()
             
@@ -1388,7 +1388,7 @@ def creating_groups(course_id):
             import traceback
             traceback.print_exc()
             
-            # Re-fetch course and students for template rendering
+
             try:
                 if not conn:
                     conn = get_connection()
@@ -1421,14 +1421,14 @@ def creating_groups(course_id):
             if conn:
                 conn.close()
     
-    # Handle GET request - display the form
+
     conn = None
     cursor = None
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Fetch course info
+
         cursor.execute("SELECT CourseCode FROM course WHERE CourseID = %s", (course_id,))
         course = cursor.fetchone()
         
@@ -1436,7 +1436,7 @@ def creating_groups(course_id):
             flash('Course not found.', 'error')
             return redirect(url_for('professor_dashboard'))
         
-        # Fetch all enrolled students
+
         cursor.execute("""
             SELECT s.StudentID, s.Name
             FROM student s
@@ -1462,7 +1462,7 @@ def creating_groups(course_id):
 
 @app.route('/groups-in-your-class')
 def groups_in_your_class():
-    # Check if professor is logged in
+
     if 'professor_id' not in session:
         flash('Please log in to access this page.', 'error')
         return redirect(url_for('login'))
@@ -1471,7 +1471,7 @@ def groups_in_your_class():
     cursor = None
     try:
         professor_id = session.get('professor_id')
-        # Get course_id from session or query parameters
+
         course_id = session.get('selected_course_id') or request.args.get('course_id')
         
         if not course_id:
@@ -1481,7 +1481,7 @@ def groups_in_your_class():
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Get selected course info
+
         cursor.execute("""
             SELECT CourseID, CourseCode
             FROM course
@@ -1493,7 +1493,7 @@ def groups_in_your_class():
             flash('Course not found or not assigned to this professor.', 'error')
             return redirect(url_for('professor_dashboard'))
         
-        # Fetch all groups for this course
+
         cursor.execute("""
             SELECT GroupID, GroupName
             FROM studentgroup
@@ -1506,7 +1506,7 @@ def groups_in_your_class():
         for group in groups:
             group_id = group['GroupID']
             
-            # Get students in each group
+
             cursor.execute("""
                 SELECT s.StudentID, s.Name
                 FROM groupmembers gm
@@ -1547,7 +1547,7 @@ def signup():
             name = request.form['name']
             email = request.form['email']
             
-            # Insert student data into the database
+
             cursor = connection.cursor()
             cursor.execute("INSERT INTO student (Name, Email) VALUES (%s, %s)", (name, email))
             connection.commit()
@@ -1562,10 +1562,10 @@ def signup():
     
     return render_template('signup.html')
 
-# ============================================================================
-# TEMPORARY DIAGNOSTIC FUNCTION - For checking MySQL triggers on student table
-# This function is for debugging purposes only and will be removed after testing
-# ============================================================================
+
+
+
+
 def debug_check_student_triggers():
     """
     Temporary diagnostic function to check if any MySQL triggers exist
@@ -1580,20 +1580,20 @@ def debug_check_student_triggers():
     cursor = None
     db_conn = None
     try:
-        # Get database connection
+
         db_conn = get_connection()
         cursor = db_conn.cursor()
         
-        # Query to show all triggers on the student table
+
         print("DEBUG: Executing: SHOW TRIGGERS WHERE `Table` = 'student';")
         cursor.execute("SHOW TRIGGERS WHERE `Table` = 'student';")
         
         triggers = cursor.fetchall()
         
         if not triggers or len(triggers) == 0:
-            print("DEBUG: ✅ NO TRIGGERS found on 'student' table")
+            print("DEBUG:  NO TRIGGERS found on 'student' table")
         else:
-            print(f"DEBUG: ⚠️ Found {len(triggers)} trigger(s) on 'student' table:")
+            print(f"DEBUG:  Found {len(triggers)} trigger(s) on 'student' table:")
             print("-" * 80)
             for i, trigger in enumerate(triggers):
                 print(f"\nTrigger #{i+1}:")
@@ -1604,10 +1604,10 @@ def debug_check_student_triggers():
                 print(f"  Timing: {trigger[4] if len(trigger) > 4 else 'N/A'}")
                 print(f"  Full Trigger Data: {trigger}")
                 
-                # Check if trigger references FirstName or LastName
+
                 trigger_statement = str(trigger[3] if len(trigger) > 3 else '')
                 if 'FirstName' in trigger_statement or 'LastName' in trigger_statement:
-                    print(f"  🚨 WARNING: This trigger references FirstName or LastName!")
+                    print(f"   WARNING: This trigger references FirstName or LastName!")
         
         cursor.close()
         db_conn.close()
@@ -1633,13 +1633,13 @@ def debug_check_student_triggers():
                 pass
 
 if __name__ == '__main__':
-    # Run diagnostic check once at startup
+
     print("\n" + "=" * 80)
     print("STARTUP: Running diagnostic check for student table triggers...")
     print("=" * 80 + "\n")
     debug_check_student_triggers()
     print("\n")
     
-    # Start the Flask application
+
     port = int(os.environ.get("PORT", 5002))
     app.run(host='0.0.0.0', port=port, debug=True)

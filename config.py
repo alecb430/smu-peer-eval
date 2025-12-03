@@ -1,9 +1,9 @@
-# config.py
+
 import os
 
 
 class Config:
-    # SECRET_KEY = "23320398123"  # Used for Flask sessions/flash
+
 
     DB_HOST = "yamanote.proxy.rlwy.net"
     DB_PORT = 41464

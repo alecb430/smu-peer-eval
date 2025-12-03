@@ -1,4 +1,4 @@
-# db_connect.py
+
 import mysql.connector
 from mysql.connector import Error, OperationalError
 from config import Config
@@ -33,7 +33,7 @@ def ensure_connection(conn=None):
         return get_connection()
     
     try:
-        # Check if connection is still open
+
         if not conn.is_connected():
             print("DB: Connection is not connected, creating new connection")
             try:
@@ -42,7 +42,7 @@ def ensure_connection(conn=None):
                 pass
             return get_connection()
         
-        # Ping the connection to verify it's alive
+
         conn.ping(reconnect=False, attempts=1, delay=0)
         print("DB: Connection is alive and valid")
         return conn
@@ -67,5 +67,5 @@ def get_valid_cursor(conn=None):
     return cursor, valid_conn
 
 
-# Provide a ready-made connection object for other modules (deprecated - use ensure_connection instead)
+
 connection = get_connection()

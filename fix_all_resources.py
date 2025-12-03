@@ -1,18 +1,18 @@
 import re
 
-# Input HTML file
+
 input_file = "index.html"
 
-# Output HTML file (Flask-ready)
+
 output_file = "templates/index.html"
 
-# Read original HTML
+
 with open(input_file, 'r', encoding='utf-8') as f:
     html = f.read()
 
-# -----------------------------
-# Fix CSS <link> tags
-# -----------------------------
+
+
+
 css_pattern = r'<link\s+.*?href="(.*?)".*?>'
 def replace_css(match):
     filename = match.group(1).split('/')[-1]
@@ -20,9 +20,9 @@ def replace_css(match):
 
 html = re.sub(css_pattern, replace_css, html)
 
-# -----------------------------
-# Fix JS <script> tags
-# -----------------------------
+
+
+
 js_pattern = r'<script\s+.*?src="(.*?)".*?></script>'
 def replace_js(match):
     filename = match.group(1).split('/')[-1]
@@ -30,13 +30,13 @@ def replace_js(match):
 
 html = re.sub(js_pattern, replace_js, html)
 
-# -----------------------------
-# Fix Squarespace <img> tags
-# -----------------------------
+
+
+
 def fix_img_tag(match):
     tag = match.group(0)
 
-    # Extract first src
+
     src_match = re.search(r'src="([^"]+)"', tag)
     if not src_match:
         return tag
@@ -44,7 +44,7 @@ def fix_img_tag(match):
 
     new_src = f'{{{{ url_for(\'static\', filename=\'images/{filename}\') }}}}'
 
-    # Fix srcset
+
     srcset_match = re.search(r'srcset="([^"]+)"', tag)
     new_srcset_str = ''
     if srcset_match:
@@ -58,15 +58,15 @@ def fix_img_tag(match):
             new_srcset.append(f'{{{{ url_for(\'static\', filename=\'images/{file_path}\') }}}}{query} {size}'.strip())
         new_srcset_str = ', '.join(new_srcset)
 
-    # Remove all duplicate src and alt
+
     tag = re.sub(r'(src|alt)="[^"]+"', '', tag[1:-1])
 
-    # Add correct src and alt
+
     alt_match = re.search(r'alt="([^"]*)"', match.group(0))
     alt_text = alt_match.group(1) if alt_match else filename
     fixed_tag = f'<img src="{new_src}" alt="{alt_text}"'
 
-    # Preserve other attributes (width, height, style, class, id, sizes, loading, decoding, data-*)
+
     attrs = re.findall(r'(width|height|style|sizes|loading|decoding|class|id|data-[^=]+)="([^"]+)"', match.group(0))
     for key, val in attrs:
         fixed_tag += f' {key}="{val}"'
@@ -79,9 +79,9 @@ def fix_img_tag(match):
 
 html = re.sub(r'<img[^>]+>', fix_img_tag, html)
 
-# -----------------------------
-# Save output
-# -----------------------------
+
+
+
 with open(output_file, 'w', encoding='utf-8') as f:
     f.write(html)
 

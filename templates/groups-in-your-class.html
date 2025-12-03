@@ -2043,13 +2043,19 @@
 <div class="sqs-html-content" data-sqsp-text-block-content>
   {% if all_groups and all_groups | length > 0 %}
     {% set group = all_groups[0] %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4><ol data-rte-list="default">
-    {% for student in group.Students %}
-      <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
-    {% endfor %}
-    </ol>
+    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4>
+    {% if group.Students and group.Students | length > 0 %}
+      <ol data-rte-list="default">
+      {% for student in group.Students %}
+        <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
+      {% endfor %}
+      </ol>
+    {% else %}
+      <p class="" style="white-space:pre-wrap;">TBD</p>
+    {% endif %}
   {% else %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">Group 1</span></h4><ol data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Jane Doe</p></li><li><p class="" style="white-space:pre-wrap;">John Smith</p></li><li><p class="" style="white-space:pre-wrap;">Hary Potter</p></li><li><p class="" style="white-space:pre-wrap;">Mark Johnson</p></li></ol>
+    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">No Groups</span></h4>
+    <p class="" style="white-space:pre-wrap;">No groups have been created yet.</p>
   {% endif %}
 </div>
 
@@ -2101,13 +2107,16 @@
 <div class="sqs-html-content" data-sqsp-text-block-content>
   {% if all_groups and all_groups | length > 1 %}
     {% set group = all_groups[1] %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4><ol data-rte-list="default">
-    {% for student in group.Students %}
-      <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
-    {% endfor %}
-    </ol>
-  {% else %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">Group 2</span></h4><ol data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Jane Doe</p></li><li><p class="" style="white-space:pre-wrap;">John Smith</p></li><li><p class="" style="white-space:pre-wrap;">Hary Potter</p></li><li><p class="" style="white-space:pre-wrap;">Mark Johnson</p></li><li><p class="" style="white-space:pre-wrap;">Peter Harper</p></li></ol>
+    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4>
+    {% if group.Students and group.Students | length > 0 %}
+      <ol data-rte-list="default">
+      {% for student in group.Students %}
+        <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
+      {% endfor %}
+      </ol>
+    {% else %}
+      <p class="" style="white-space:pre-wrap;">TBD</p>
+    {% endif %}
   {% endif %}
 </div>
 
@@ -2181,13 +2190,16 @@
 <div class="sqs-html-content" data-sqsp-text-block-content>
   {% if all_groups and all_groups | length > 2 %}
     {% set group = all_groups[2] %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4><ol data-rte-list="default">
-    {% for student in group.Students %}
-      <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
-    {% endfor %}
-    </ol>
-  {% else %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">Group 3</span></h4><ol data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Jane Doe</p></li><li><p class="" style="white-space:pre-wrap;">John Smith</p></li><li><p class="" style="white-space:pre-wrap;">Hary Potter</p></li><li><p class="" style="white-space:pre-wrap;">Mark Johnson</p></li></ol>
+    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4>
+    {% if group.Students and group.Students | length > 0 %}
+      <ol data-rte-list="default">
+      {% for student in group.Students %}
+        <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p></li>
+      {% endfor %}
+      </ol>
+    {% else %}
+      <p class="" style="white-space:pre-wrap;">TBD</p>
+    {% endif %}
   {% endif %}
 </div>
 
@@ -2261,13 +2273,16 @@
 <div class="sqs-html-content" data-sqsp-text-block-content>
   {% if all_groups and all_groups | length > 3 %}
     {% set group = all_groups[3] %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4><ol data-rte-list="default">
-    {% for student in group.Students %}
-      <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p>{% if loop.last %}<p class="" data-rte-preserve-empty="true" style="white-space:pre-wrap;"></p>{% endif %}</li>
-    {% endfor %}
-    </ol>
-  {% else %}
-    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">Group 4</span></h4><ol data-rte-list="default"><li><p class="" style="white-space:pre-wrap;">Jane Doe</p></li><li><p class="" style="white-space:pre-wrap;">John Smith</p></li><li><p class="" style="white-space:pre-wrap;">Hary Potter</p></li><li><p class="" style="white-space:pre-wrap;">Mark Johnson</p></li><li><p class="" style="white-space:pre-wrap;">Peter Harper</p><p class="" data-rte-preserve-empty="true" style="white-space:pre-wrap;"></p></li></ol>
+    <h4 style="white-space:pre-wrap;font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;"><span class="sqsrte-text-highlight" data-text-attribute-id="db78c716-8fe2-42c0-8896-8ab5b1e2cd17" style="font-family:'Libre Baskerville',serif;color:#00205B;font-weight:400;">{{ group.GroupName }}</span></h4>
+    {% if group.Students and group.Students | length > 0 %}
+      <ol data-rte-list="default">
+      {% for student in group.Students %}
+        <li><p class="" style="white-space:pre-wrap;">{{ student.Name }}</p>{% if loop.last %}<p class="" data-rte-preserve-empty="true" style="white-space:pre-wrap;"></p>{% endif %}</li>
+      {% endfor %}
+      </ol>
+    {% else %}
+      <p class="" style="white-space:pre-wrap;">TBD</p>
+    {% endif %}
   {% endif %}
 </div>
 

@@ -1,4 +1,4 @@
-// Smooth scroll for navigation links
+
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -8,7 +8,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Header scroll behavior
+
 const header = document.querySelector('header');
 let lastScroll = 0;
 
